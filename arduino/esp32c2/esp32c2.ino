@@ -44,6 +44,7 @@ String cmd = "";
 bool doSend = false;
 long last = 0;
 bool test_val = true;
+
 void WIFI_Init()
 {
     WiFi.begin(ssid, password);
@@ -137,7 +138,7 @@ void MQTT_Report_BaseData()
     Serial.println(reportResult ? "Publish Success!" : "Publish Failed!");
 }
 
-void MQTT_Report()
+void MQTT_Report_Test()
 {
     // 创建一个 JSON 文档对象
     StaticJsonDocument<256> doc;
@@ -280,8 +281,7 @@ void loop()
     if (now - last > 1000)
     { // 每 10 秒上报一次
         last = now;
-        MQTT_Report();
-        // 分别调用上传 FullStatus 和 BaseData 的函数
+        MQTT_Report_Test();
         MQTT_Report_FullStatus();
         MQTT_Report_BaseData();
     }
