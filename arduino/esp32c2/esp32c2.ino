@@ -273,6 +273,8 @@ void setup()
 
 void loop()
 {
+    static uint8_t buffer[8];
+    static uint8_t bufferIndex = 0;
     // 尝试扫描并连接云，如果没有连接将会一直client.loop
     if (!client.connected())
     {
@@ -286,15 +288,48 @@ void loop()
     if (now - last > 1000)
     { // 每 10 秒上报一次
         last = now;
-        //MQTT_Report_Test();
-       // MQTT_Report_FullStatus();
-       // MQTT_Report_BaseData();
+        
+        // MQTT_Report_Test();
+        // MQTT_Report_FullStatus();
+        // MQTT_Report_BaseData();
     }
+
     // 直接打印所有收到的字节（不检查帧格式）
+    // while (SerialPort.available())
+    // {
+    // uint8_t incomingByte = SerialPort.read();
+    // Serial.print(incomingByte, HEX);
+    // Serial.print("\n"); // 用空格分隔字节
+    // }
+
     while (SerialPort.available())
     {
         uint8_t incomingByte = SerialPort.read();
         Serial.print(incomingByte, HEX);
         Serial.print("\n"); // 用空格分隔字节
+        buffer[bufferIndex++] = incomingByte;
+        //Serial.print(bufferIndex);
+        //Serial.print("\n"); // 用空格分隔字节
+
+        // 检测完整数据包
+        if (bufferIndex >= 8)
+        {
+            // parseDataPacket(buffer);
+            Serial.println("=== Full Packet Received ===");
+            
+            // 打印整个buffer内容
+            for (int i = 0; i < 8; i++) {
+                Serial.print("0x");
+                Serial.print(buffer[i], HEX);
+                Serial.print(" ");
+            }
+            Serial.println();
+
+            // 解析数据包
+          //  parseDataPacket(buffer);
+
+            bufferIndex = 0; // 重置缓冲区
+        }
     }
+
 }
