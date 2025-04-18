@@ -1,7 +1,11 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <HardwareSerial.h>
+#define RX_PIN 3
+#define TX_PIN 1
 
+HardwareSerial SerialPort(1); // 使用 UART1
 // 上报设备属性
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -260,10 +264,11 @@ void MQTT_CmdCallback(char *topic, byte *payload, unsigned int length)
 
 void setup()
 {
-    Serial.begin(115200);
-    delay(100);  // 等待串口初始化
-    WIFI_Init(); // 等待wifi连接
-    MQTT_Init(); // 初始化MQTT尝试连接
+    Serial.begin(9600);
+    SerialPort.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN); // 初始化 UART1，RX=GPIO3，TX=GPIO1
+    delay(100);                                         // 等待串口初始化
+    WIFI_Init();                                        // 等待wifi连接
+    MQTT_Init();                                        // 初始化MQTT尝试连接
 }
 
 void loop()
@@ -281,8 +286,15 @@ void loop()
     if (now - last > 1000)
     { // 每 10 秒上报一次
         last = now;
-        MQTT_Report_Test();
-        MQTT_Report_FullStatus();
-        MQTT_Report_BaseData();
+        //MQTT_Report_Test();
+       // MQTT_Report_FullStatus();
+       // MQTT_Report_BaseData();
+    }
+    // 直接打印所有收到的字节（不检查帧格式）
+    while (SerialPort.available())
+    {
+        uint8_t incomingByte = SerialPort.read();
+        Serial.print(incomingByte, HEX);
+        Serial.print("\n"); // 用空格分隔字节
     }
 }
