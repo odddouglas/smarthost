@@ -5,9 +5,11 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <esp_system.h> // 添加ESP32系统头文件
 
 #define RX_PIN 3
 #define TX_PIN 1
+#define MAX_FRAME_ERRORS 5 // 最大允许错误次数, 否则触发软件复位
 
 HardwareSerial SerialPort(1); // 使用 UART1
 // 上报设备属性
@@ -53,6 +55,9 @@ String cmd = "";
 bool doSend = false;
 long last_stamp = 0;
 bool test_val = true;
+
+//  看门狗错误计数器
+uint8_t frameErrorCount = 0;
 
 void WIFI_Init()
 {
@@ -271,6 +276,7 @@ bool verifySerialFrame(uint8_t *buf)
     if (buf[0] != 0xA5 || buf[1] != 0xFA || buf[7] != 0xFB)
     {
         printf("帧头或帧尾错误\n");
+        frameErrorCount++;
         return false;
     }
 
@@ -284,12 +290,19 @@ bool verifySerialFrame(uint8_t *buf)
     if (calcSum != checksum)
     {
         printf("校验失败，应为: 0x%02X,收到: 0x%02X\n", calcSum, checksum);
+        frameErrorCount++;
         return false;
     }
     printf("解析成功: ID=0x%02X, TYPE=0x%02X, DATA=0x%04X\n", id, type, data);
 
-    // 可根据 type 和 data 执行具体操作
-    // handleCommand(type, data);
+    if (frameErrorCount >= MAX_FRAME_ERRORS)
+    {
+        Serial.println("连续帧错误超过阈值，即将重启系统...");
+        delay(100);
+        esp_restart(); // 触发软件复位
+    }
+
+    frameErrorCount = 0; // 成功时重置计数器
     return true;
 }
 void parseDataPacket(uint16_t data)
@@ -403,7 +416,7 @@ void loop()
             // 解析数据包
             if (verifySerialFrame(buffer)) // 检验
             {
-                parseDataPacket(buffer[4] | (buffer[5] << 8)); // 低在前，高在后
+                parseDataPacket(buffer[4] | (buffer[5] << 8)); // 处理命令词ID
             }
 
             bufferIndex = 0; // 重置缓冲区
