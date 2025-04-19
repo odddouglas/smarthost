@@ -2,6 +2,10 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <HardwareSerial.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdint.h>
+
 #define RX_PIN 3
 #define TX_PIN 1
 
@@ -44,9 +48,10 @@ double humidity = 0.0;
 // 字符串数组，用于存储颜色
 String pcLightColor[4]; // 假设最多存储 4 个颜色
 
+// MQTT的命令相关
 String cmd = "";
 bool doSend = false;
-long last = 0;
+long last_stamp = 0;
 bool test_val = true;
 
 void WIFI_Init()
@@ -261,6 +266,85 @@ void MQTT_CmdCallback(char *topic, byte *payload, unsigned int length)
         MQTT_Respond(String(topic), "failure");
     }
 }
+bool verifySerialFrame(uint8_t *buf)
+{
+    if (buf[0] != 0xA5 || buf[1] != 0xFA || buf[7] != 0xFB)
+    {
+        printf("帧头或帧尾错误\n");
+        return false;
+    }
+
+    uint8_t id = buf[2];
+    uint8_t type = buf[3];
+    uint16_t data = buf[4] | (buf[5] << 8); // 低字节在前
+    uint8_t checksum = buf[6];
+
+    // 计算校验和（不包含 checksum 和 end）
+    uint8_t calcSum = buf[0] + buf[1] + id + type + buf[4] + buf[5];
+    if (calcSum != checksum)
+    {
+        printf("校验失败，应为: 0x%02X,收到: 0x%02X\n", calcSum, checksum);
+        return false;
+    }
+    printf("解析成功: ID=0x%02X, TYPE=0x%02X, DATA=0x%04X\n", id, type, data);
+
+    // 可根据 type 和 data 执行具体操作
+    // handleCommand(type, data);
+    return true;
+}
+void parseDataPacket(uint16_t data)
+{
+    // 解析各字段（按位定义）
+    uint8_t lightColor = data & 0x3F;          // 灯光颜色（前6位，000~111有效）
+    bool pcStatus = (data >> 6) & 0x01;        // 主机状态（第7位）
+    bool pcFanIn = (data >> 7) & 0x01;         // 进风风扇（第8位）
+    bool pcFanOut = (data >> 8) & 0x01;        // 出风风扇（第9位）
+    uint8_t fanSpeedBits = (data >> 9) & 0x03; // 风速（第10-11位）
+
+    // 灯光颜色映射表（000~111）
+    String colorName = "未知颜色";
+    const char *colorMap[] = {
+        "关灯",   // 000
+        "呼吸灯", // 001
+        "红灯",   // 010
+        "绿灯",   // 011
+        "蓝灯",   // 100
+        "白灯",   // 101
+        "紫灯",   // 110
+        "流光灯"  // 111
+    };
+    if (lightColor <= 7)
+    {
+        colorName = colorMap[lightColor];
+    }
+
+    // 风速映射（2位编码）
+    String fanSpeedStr = "关闭";
+    if (fanSpeedBits == 1)
+        fanSpeedStr = "低速";
+    else if (fanSpeedBits == 2)
+        fanSpeedStr = "中速";
+    else if (fanSpeedBits == 3)
+        fanSpeedStr = "高速";
+
+    // 串口调试信息输出
+    Serial.println("【主机状态数据解析】");
+    Serial.print("灯光颜色编号：");
+    Serial.print(lightColor);
+    Serial.print(" → ");
+    Serial.println(colorName);
+    Serial.print("主机状态：");
+    Serial.println(pcStatus ? "开启" : "关闭");
+    Serial.print("进风风扇：");
+    Serial.println(pcFanIn ? "开启" : "关闭");
+    Serial.print("出风风扇：");
+    Serial.println(pcFanOut ? "开启" : "关闭");
+    Serial.print("风速档位：");
+    Serial.print(fanSpeedBits);
+    Serial.print(" → ");
+    Serial.println(fanSpeedStr);
+    Serial.println();
+}
 
 void setup()
 {
@@ -284,41 +368,32 @@ void loop()
     {
         client.loop();
     }
-    long now = millis();
-    if (now - last > 1000)
+    long now_stamp = millis();
+    if (now_stamp - last_stamp > 1000)
     { // 每 10 秒上报一次
-        last = now;
-        
+        last_stamp = now_stamp;
         // MQTT_Report_Test();
         // MQTT_Report_FullStatus();
         // MQTT_Report_BaseData();
     }
-
-    // 直接打印所有收到的字节（不检查帧格式）
-    // while (SerialPort.available())
-    // {
-    // uint8_t incomingByte = SerialPort.read();
-    // Serial.print(incomingByte, HEX);
-    // Serial.print("\n"); // 用空格分隔字节
-    // }
-
     while (SerialPort.available())
     {
         uint8_t incomingByte = SerialPort.read();
-        Serial.print(incomingByte, HEX);
-        Serial.print("\n"); // 用空格分隔字节
+        // Serial.print(incomingByte, HEX);
+        // Serial.print("\n"); // 用空格分隔字节
         buffer[bufferIndex++] = incomingByte;
-        //Serial.print(bufferIndex);
-        //Serial.print("\n"); // 用空格分隔字节
+        // Serial.print(bufferIndex);
+        // Serial.print("\n"); // 用空格分隔字节
 
         // 检测完整数据包
         if (bufferIndex >= 8)
         {
             // parseDataPacket(buffer);
             Serial.println("=== Full Packet Received ===");
-            
+
             // 打印整个buffer内容
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < 8; i++)
+            {
                 Serial.print("0x");
                 Serial.print(buffer[i], HEX);
                 Serial.print(" ");
@@ -326,10 +401,12 @@ void loop()
             Serial.println();
 
             // 解析数据包
-          //  parseDataPacket(buffer);
+            if (verifySerialFrame(buffer)) // 检验
+            {
+                parseDataPacket(buffer[4] | (buffer[5] << 8)); // 低在前，高在后
+            }
 
             bufferIndex = 0; // 重置缓冲区
         }
     }
-
 }
