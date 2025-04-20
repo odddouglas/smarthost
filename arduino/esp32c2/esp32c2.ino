@@ -306,7 +306,7 @@ void MQTT_CmdCallback(char *topic, byte *payload, unsigned int length)
         MQTT_Respond(String(topic), "failure");
         return;
     }
-
+    MQTT_Respond(String(topic), "success");
     // ======== 串口调试信息（统一风格）========
     Serial.println("【PACKET】【主机状态数据解析】");
     Serial.print("主机状态：");
@@ -323,8 +323,6 @@ void MQTT_CmdCallback(char *topic, byte *payload, unsigned int length)
     Serial.println(IssueData.pcFanOut ? "开启" : "关闭");
     Serial.print("风速档位：");
     Serial.println(IssueData.pcFanVolume);
-
-    MQTT_Respond(String(topic), "success");
 }
 
 bool verifySerialFrame(uint8_t *buf)
@@ -426,7 +424,6 @@ void parseDataBuffer(uint16_t data)
 
 void sendStatusPacket(uint16_t cmd_id)
 {
-    Serial.print("TEST");
     uint8_t packet[8];
 
     // ======== 帧结构 ========
@@ -440,7 +437,8 @@ void sendStatusPacket(uint16_t cmd_id)
     packet[5] = (cmd_id >> 8) & 0xFF;
 
     // 校验和 = 产品ID + 消息类型 + 命令ID低 + 命令ID高
-    uint8_t checksum = packet[2] + packet[3] + packet[4] + packet[5];
+    uint8_t checksum = packet[0] + packet[1] + packet[2] + packet[3] + packet[4] + packet[5];
+
     packet[6] = checksum;
 
     packet[7] = 0xFB; // 帧尾
@@ -501,7 +499,7 @@ void loop()
         // 检测完整数据包
         if (bufferIndex >= 8)
         {
-            Serial.println("=== Full Packet Received ===");
+            Serial.println("=== Full Buffer Received ===");
 
             // 打印整个buffer内容
             for (int i = 0; i < 8; i++)
