@@ -246,52 +246,84 @@ void MQTT_CmdCallback(char *topic, byte *payload, unsigned int length)
         return;
     }
 
-    String payloadStr = "";
-    for (unsigned int i = 0; i < length; i++)
-    {
-        payloadStr += (char)payload[i];
-    }
-    Serial.println("Received command: " + payloadStr);
-
     String commandName = doc["command_name"];
-
-    if (commandName == "pcLightCtrl")
+    if (commandName == "pcStatus")
     {
-        IssueData.pcLightBreathing = doc["paras"]["pcLightBreathing"].as<bool>();
-        IssueData.pcLightFleeting = doc["paras"]["pcLightFleeting"].as<bool>();
-        IssueData.pcLightColor = doc["paras"]["pcLightColor"].as<String>();
-
-        Serial.println("【灯光控制命令】");
-        Serial.println("呼吸灯：" + String(IssueData.pcLightBreathing ? "开启" : "关闭"));
-        Serial.println("流光灯：" + String(IssueData.pcLightFleeting ? "开启" : "关闭"));
-        Serial.println("灯光颜色：" + IssueData.pcLightColor);
+        IssueData.pcStatus = doc["paras"]["status"].as<bool>();
+        sendStatusPacket(IssueData.pcStatus ? 0x0007 : 0x0008);
     }
-    else if (commandName == "pcFanCtrl")
+    else if (commandName == "pcFanVolume")
     {
-        IssueData.pcFanIn = doc["paras"]["pcFanIn"].as<bool>();
-        IssueData.pcFanOut = doc["paras"]["pcFanOut"].as<bool>();
-        IssueData.pcFanVolume = doc["paras"]["pcFanVolume"].as<String>();
+        String vol = doc["paras"]["volume"].as<String>();
+        IssueData.pcFanVolume = vol;
 
-        Serial.println("【风扇控制命令】");
-        Serial.println("进风风扇：" + String(IssueData.pcFanIn ? "开启" : "关闭"));
-        Serial.println("出风风扇：" + String(IssueData.pcFanOut ? "开启" : "关闭"));
-        Serial.println("风速档位：" + IssueData.pcFanVolume);
+        if (vol == "high")
+            sendStatusPacket(0x0004);
+        else if (vol == "medium")
+            sendStatusPacket(0x0005);
+        else if (vol == "low")
+            sendStatusPacket(0x0006);
     }
-    else if (commandName == "pcStatusCtrl")
+    else if (commandName == "pcFanIn")
     {
-        IssueData.pcStatus = doc["paras"]["pcStatus"].as<bool>();
+        IssueData.pcFanIn = doc["paras"]["status"].as<bool>();
+        sendStatusPacket(IssueData.pcFanIn ? 0x0013 : 0x0015);
+    }
+    else if (commandName == "pcFanOut")
+    {
+        IssueData.pcFanOut = doc["paras"]["status"].as<bool>();
+        sendStatusPacket(IssueData.pcFanOut ? 0x0014 : 0x0016);
+    }
+    else if (commandName == "pcLightColor")
+    {
+        IssueData.pcLightColor = doc["paras"]["color"].as<String>();
 
-        Serial.println("【主机电源控制命令】");
-        Serial.println("主机状态：" + String(IssueData.pcStatus ? "开启" : "关闭"));
+        if (IssueData.pcLightColor == "red")
+            sendStatusPacket(0x000D);
+        else if (IssueData.pcLightColor == "green")
+            sendStatusPacket(0x000E);
+        else if (IssueData.pcLightColor == "blue")
+            sendStatusPacket(0x000F);
+        else if (IssueData.pcLightColor == "white")
+            sendStatusPacket(0x0010);
+        else if (IssueData.pcLightColor == "purple")
+            sendStatusPacket(0x0011);
+    }
+    else if (commandName == "pcLgihtBreathing")
+    {
+        IssueData.pcLightBreathing = doc["paras"]["status"].as<bool>();
+        if (IssueData.pcLightBreathing)
+            sendStatusPacket(0x000C); // 呼吸灯开启
+    }
+    else if (commandName == "pcLightFleeting")
+    {
+        IssueData.pcLightFleeting = doc["paras"]["status"].as<bool>();
+        if (IssueData.pcLightFleeting)
+            sendStatusPacket(0x0012); // 流光开启
     }
     else
     {
-        // 命令名称不匹配，发送失败响应
         MQTT_Respond(String(topic), "failure");
         return;
     }
 
-    // 命令成功后发送响应
+    // ======== 串口调试信息（统一风格）========
+    Serial.println("【PACKET】【主机状态数据解析】");
+    Serial.print("主机状态：");
+    Serial.println(IssueData.pcStatus ? "开启" : "关闭");
+    Serial.print("呼吸灯：");
+    Serial.println(IssueData.pcLightBreathing ? "开启" : "关闭");
+    Serial.print("流光灯：");
+    Serial.println(IssueData.pcLightFleeting ? "开启" : "关闭");
+    Serial.print("常亮灯：");
+    Serial.println(IssueData.pcLightColor);
+    Serial.print("进风风扇：");
+    Serial.println(IssueData.pcFanIn ? "开启" : "关闭");
+    Serial.print("出风风扇：");
+    Serial.println(IssueData.pcFanOut ? "开启" : "关闭");
+    Serial.print("风速档位：");
+    Serial.println(IssueData.pcFanVolume);
+
     MQTT_Respond(String(topic), "success");
 }
 
@@ -329,7 +361,9 @@ bool verifySerialFrame(uint8_t *buf)
     frameErrorCount = 0; // 成功时重置计数器
     return true;
 }
-void parseDataPacket(uint16_t data)
+
+// 解析串口数据
+void parseDataBuffer(uint16_t data)
 {
     // 解析各字段
     uint8_t lightColor = data & 0x3F;          // 灯光颜色（前6位）
@@ -373,22 +407,58 @@ void parseDataPacket(uint16_t data)
         ReportData.pcFanVolume = ""; // 0 表示关闭或无风速
 
     // 串口调试信息（可选）
-    Serial.println("【主机状态数据解析】");
-    Serial.print("常亮灯：");
-    Serial.println(ReportData.pcLightColor);
+    Serial.println("【BUFFER】【主机状态数据解析】");
+    Serial.print("主机状态：");
+    Serial.println(ReportData.pcStatus ? "开启" : "关闭");
     Serial.print("呼吸灯：");
     Serial.println(ReportData.pcLightBreathing ? "开启" : "关闭");
     Serial.print("流光灯：");
     Serial.println(ReportData.pcLightFleeting ? "开启" : "关闭");
-    Serial.print("主机状态：");
-    Serial.println(ReportData.pcStatus ? "开启" : "关闭");
+    Serial.print("常亮灯：");
+    Serial.println(ReportData.pcLightColor);
     Serial.print("进风风扇：");
     Serial.println(ReportData.pcFanIn ? "开启" : "关闭");
     Serial.print("出风风扇：");
     Serial.println(ReportData.pcFanOut ? "开启" : "关闭");
     Serial.print("风速档位：");
     Serial.println(ReportData.pcFanVolume);
+}
+
+void sendStatusPacket(uint16_t cmd_id)
+{
+    Serial.print("TEST");
+    uint8_t packet[8];
+
+    // ======== 帧结构 ========
+    packet[0] = 0xA5;
+    packet[1] = 0xFA;
+    packet[2] = 0x00; // 产品ID
+    packet[3] = 0x03; // 消息类型
+
+    // 命令词 ID（低位在前，高位在后）
+    packet[4] = cmd_id & 0xFF;
+    packet[5] = (cmd_id >> 8) & 0xFF;
+
+    // 校验和 = 产品ID + 消息类型 + 命令ID低 + 命令ID高
+    uint8_t checksum = packet[2] + packet[3] + packet[4] + packet[5];
+    packet[6] = checksum;
+
+    packet[7] = 0xFB; // 帧尾
+
+    // ======== 串口调试打印 ========
+    Serial.println("=== Voice Command Packet Sent ===");
+    for (int i = 0; i < 8; i++)
+    {
+        Serial.print("0x");
+        if (packet[i] < 0x10)
+            Serial.print("0");
+        Serial.print(packet[i], HEX);
+        Serial.print(" ");
+    }
     Serial.println();
+
+    // ======== 串口发送 ========
+    // SerialPort.write(packet, 8);
 }
 
 void setup()
@@ -417,7 +487,7 @@ void loop()
     if (now_stamp - last_stamp > 10000)
     { // 每 10 秒上报一次
         last_stamp = now_stamp;
-        MQTT_Report_BaseData();
+        // MQTT_Report_BaseData();
     }
 
     // 串口接受区
@@ -426,16 +496,11 @@ void loop()
     while (SerialPort.available())
     {
         uint8_t incomingByte = SerialPort.read();
-        // Serial.print(incomingByte, HEX);
-        // Serial.print("\n"); // 用空格分隔字节
         buffer[bufferIndex++] = incomingByte;
-        // Serial.print(bufferIndex);
-        // Serial.print("\n"); // 用空格分隔字节
 
         // 检测完整数据包
         if (bufferIndex >= 8)
         {
-            // parseDataPacket(buffer);
             Serial.println("=== Full Packet Received ===");
 
             // 打印整个buffer内容
@@ -450,7 +515,7 @@ void loop()
             // 解析数据包
             if (verifySerialFrame(buffer)) // 检验
             {
-                parseDataPacket(buffer[4] | (buffer[5] << 8)); // 处理命令词ID
+                parseDataBuffer(buffer[4] | (buffer[5] << 8)); // 处理命令词ID
                 MQTT_Report_Status();
                 delay(50);
                 MQTT_Report_Fan();
@@ -458,7 +523,6 @@ void loop()
                 MQTT_Report_Light();
                 delay(50);
             }
-
             bufferIndex = 0; // 重置缓冲区
         }
     }
