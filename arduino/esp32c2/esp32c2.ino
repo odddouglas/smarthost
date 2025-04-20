@@ -41,10 +41,11 @@ const char *mqttPassword = "b19992e854c367b6d48d64c9958882e54bca9b2b8eb52aaf8218
 // bool pcFanStatus = false;
 
 bool pcStatus = false;
+
 // pcFan
-bool pcFanIn = false;    // 进风风扇状态（true: 开，false: 关）
-bool pcFanOut = false;   // 出风风扇状态（true: 开，false: 关）
-String pcFanVolume = ""; // 风速档位，取值："low" / "medium" / "high"
+bool pcFanIn = false;          // 进风风扇状态（true: 开，false: 关）
+bool pcFanOut = false;         // 出风风扇状态（true: 开，false: 关）
+String pcFanVolume = "medium"; // 风速档位，取值："low" / "medium" / "high"
 
 // pcBaseData
 double temperature = 0.0; // 当前温度
@@ -53,13 +54,12 @@ double humidity = 0.0;    // 当前湿度
 // pcLight
 bool pcLightBreathing = false; // 呼吸灯效果是否开启
 bool pcLightFleeting = false;  // 闪烁灯效果是否开启
-String pcLightColor = "";      // 灯光颜色，取值："red" / "green" / "blue" / "white" / "purple"
+String pcLightColor = "white"; // 灯光颜色，取值："red" / "green" / "blue" / "white" / "purple"
 
 // MQTT的命令相关
 String cmd = "";
 bool doSend = false;
 long last_stamp = 0;
-bool test_val = true;
 
 //  看门狗错误计数器
 uint8_t frameErrorCount = 0;
@@ -118,8 +118,6 @@ void MQTT_Report_Fan()
     fullstatus["pcFanVolume"] = pcFanVolume;
     fullstatus["pcFanIn"] = pcFanIn;
     fullstatus["pcFanOut"] = pcFanOut;
-    // fullstatus["pcLightBreathing"] = pcLightBreathing;
-    // fullstatus["pcLightFleeting"] = pcLightFleeting;
 
     // 将 JSON 数据序列化为字符串
     String jsonString;
@@ -170,6 +168,7 @@ void MQTT_Report_Light()
     JsonObject basedata = doc["services"][0]["properties"].createNestedObject("pcLight");
     basedata["pcLightBreathing"] = pcLightBreathing;
     basedata["pcLightFleeting"] = pcLightFleeting;
+    basedata["pcLightColor"] = pcLightColor;
 
     // 将 JSON 数据序列化为字符串
     String jsonString;
@@ -226,63 +225,63 @@ void MQTT_Respond(String topic, String result)
 // 命令回调函数：处理平台下发的命令
 void MQTT_CmdCallback(char *topic, byte *payload, unsigned int length)
 {
-    StaticJsonDocument<512> doc; // 创建静态 JSON 文档用于解析
-
-    DeserializationError error = deserializeJson(doc, payload, length); // 解析接收到的 JSON 数据
+    StaticJsonDocument<512> doc;
+    DeserializationError error = deserializeJson(doc, payload, length);
     if (error)
     {
-        Serial.println("Failed to parse JSON"); // 打印解析失败信息
-        return;                                 // 退出处理函数
+        Serial.println("Failed to parse JSON");
+        return;
     }
 
-    String payloadStr = ""; // 用于打印接收到的原始 JSON 字符串
+    String payloadStr = "";
     for (unsigned int i = 0; i < length; i++)
     {
-        payloadStr += (char)payload[i]; // 字节流转换为字符串
+        payloadStr += (char)payload[i];
     }
-    Serial.println("Received command: " + payloadStr); // 打印接收到的命令
+    Serial.println("Received command: " + payloadStr);
 
-    String commandName = doc["command_name"]; // 获取命令名称字段
+    String commandName = doc["command_name"];
 
-    if (commandName == "pcCtrl") // 判断是否为控制命令
+    if (commandName == "pcLightCtrl")
     {
-        // 读取布尔类型的参数
-        pcStatus = doc["paras"]["pcStatus"].as<bool>();
-        pcFanVolume = doc["paras"]["pcFanVolume"].as<bool>();
         pcLightBreathing = doc["paras"]["pcLightBreathing"].as<bool>();
         pcLightFleeting = doc["paras"]["pcLightFleeting"].as<bool>();
+        pcLightColor = doc["paras"]["pcLightColor"].as<String>();
+
+        Serial.println("【灯光控制命令】");
+        Serial.println("呼吸灯：" + String(pcLightBreathing ? "开启" : "关闭"));
+        Serial.println("流光灯：" + String(pcLightFleeting ? "开启" : "关闭"));
+        Serial.println("灯光颜色：" + pcLightColor);
+    }
+    else if (commandName == "pcFanCtrl")
+    {
         pcFanIn = doc["paras"]["pcFanIn"].as<bool>();
         pcFanOut = doc["paras"]["pcFanOut"].as<bool>();
+        pcFanVolume = doc["paras"]["pcFanVolume"].as<String>();
 
-        // 读取字符串数组参数
+        Serial.println("【风扇控制命令】");
+        Serial.println("进风风扇：" + String(pcFanIn ? "开启" : "关闭"));
+        Serial.println("出风风扇：" + String(pcFanOut ? "开启" : "关闭"));
+        Serial.println("风速档位：" + pcFanVolume);
+    }
+    else if (commandName == "pcStatusCtrl")
+    {
+        pcStatus = doc["paras"]["pcStatus"].as<bool>();
 
-        // 打印解析的结果
-
-        Serial.println("pcStatus: " + String(pcStatus ? "true" : "false"));
-        Serial.println("pcFanVolume: " + String(pcFanVolume ? "true" : "false"));
-        Serial.println("pcLightBreathing: " + String(pcLightBreathing ? "true" : "false"));
-        Serial.println("pcLightFleeting: " + String(pcLightFleeting ? "true" : "false"));
-        Serial.println("pcFanIn: " + String(pcFanIn ? "true" : "false"));
-        Serial.println("pcFanOut: " + String(pcFanOut ? "true" : "false"));
-        // 构造 4 位 01 字符串命令
-        cmd = "";
-        cmd += (pcStatus ? "1" : "0");
-        cmd += (pcFanVolume ? "1" : "0");
-        cmd += (pcLightBreathing ? "1" : "0");
-        cmd += (pcLightFleeting ? "1" : "0");
-        cmd += (pcFanIn ? "1" : "0");
-        cmd += (pcFanOut ? "1" : "0");
-
-        // 回复命令成功
-        MQTT_Respond(String(topic), "success");
-        doSend = true; // 标记需要发送数据
+        Serial.println("【主机电源控制命令】");
+        Serial.println("主机状态：" + String(pcStatus ? "开启" : "关闭"));
     }
     else
     {
-        // 如果命令无效，回复失败
+        // 命令名称不匹配，发送失败响应
         MQTT_Respond(String(topic), "failure");
+        return;
     }
+
+    // 命令成功后发送响应
+    MQTT_Respond(String(topic), "success");
 }
+
 bool verifySerialFrame(uint8_t *buf)
 {
     if (buf[0] != 0xA5 || buf[1] != 0xFA || buf[7] != 0xFB)
@@ -383,7 +382,7 @@ void parseDataPacket(uint16_t data)
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(9600);                                 // 用于打印调试信息
     SerialPort.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN); // 初始化 UART1，RX=GPIO3，TX=GPIO1
     delay(100);                                         // 等待串口初始化
     WIFI_Init();                                        // 等待wifi连接
