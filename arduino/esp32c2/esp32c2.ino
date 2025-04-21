@@ -7,8 +7,8 @@
 #include <stdint.h>
 #include <esp_system.h> // 添加ESP32系统头文件
 
-#define RX_PIN 3
-#define TX_PIN 1
+#define RX_PIN 3 // TX_PIN PB5
+#define TX_PIN 1 // RX_PIN PB6
 #define MAX_FRAME_ERRORS 2 // 最大允许错误次数, 否则触发软件复位
 
 HardwareSerial SerialPort(1); // 使用 UART1
@@ -454,9 +454,8 @@ void sendStatusPacket(uint16_t cmd_id)
         Serial.print(" ");
     }
     Serial.println();
-
     // ======== 串口发送 ========
-    // SerialPort.write(packet, 8);
+    SerialPort.write(packet, 8);
 }
 
 void setup()
