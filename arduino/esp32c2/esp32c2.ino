@@ -7,8 +7,8 @@
 #include <stdint.h>
 #include <esp_system.h> // 添加ESP32系统头文件
 
-#define RX_PIN 3 // TX_PIN PB5
-#define TX_PIN 1 // RX_PIN PB6
+#define RX_PIN 3           // TX_PIN PB5
+#define TX_PIN 1           // RX_PIN PB6
 #define MAX_FRAME_ERRORS 2 // 最大允许错误次数, 否则触发软件复位
 
 HardwareSerial SerialPort(1); // 使用 UART1
@@ -31,6 +31,7 @@ const char *mqttPassword = "b19992e854c367b6d48d64c9958882e54bca9b2b8eb52aaf8218
 
 #define DEVICE_ID "67fe4c765367f573f7830638_esp32"
 #define SERVER_ID "gateway_data"
+
 // 设备属性上报的 topic
 #define MQTT_TOPIC_REPORT "$oc/devices/" DEVICE_ID "/sys/properties/report"
 // 设备订阅命令的 topic
@@ -87,6 +88,7 @@ void WIFI_Init()
         Serial.print(".");
     }
     Serial.println();
+    sendStatusPacket(0x0033);
     Serial.println("WiFi connected");
     Serial.println(WiFi.localIP());
 }
