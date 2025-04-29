@@ -6,32 +6,29 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <esp_system.h> // 添加ESP32系统头文件
+#include <NimBLEDevice.h>
+#include <Arduino.h>
 
-#define RX_PIN 3           // TX_PIN PB5
-#define TX_PIN 1           // RX_PIN PB6
-#define MAX_FRAME_ERRORS 2 // 最大允许错误次数, 否则触发软件复位
-
+// 串口配置
 HardwareSerial SerialPort(1); // 使用 UART1
-// 上报设备属性
-WiFiClient espClient;
-PubSubClient client(espClient);
+#define RX_PIN 3              // TX_PIN PB5
+#define TX_PIN 1              // RX_PIN PB6
 
 // WiFi 配置
+WiFiClient espClient;
 const char *ssid = "odddouglas";
 const char *password = "odddouglas";
 
 // MQTT 配置（请使用 mqtt 端口 1883，而非 mqtts）
+PubSubClient client(espClient);
 const char *mqttServer = "e5e7404266.st1.iotda-device.cn-north-4.myhuaweicloud.com";
 const int mqttPort = 1883;
-
 // 三元组信息
 const char *ClientId = "67fe4c765367f573f7830638_esp32_0_0_2025041512";
 const char *mqttUser = "67fe4c765367f573f7830638_esp32";
 const char *mqttPassword = "b19992e854c367b6d48d64c9958882e54bca9b2b8eb52aaf82183ccad88c8ced";
-
 #define DEVICE_ID "67fe4c765367f573f7830638_esp32"
 #define SERVER_ID "gateway_data"
-
 // 设备属性上报的 topic
 #define MQTT_TOPIC_REPORT "$oc/devices/" DEVICE_ID "/sys/properties/report"
 // 设备订阅命令的 topic
@@ -51,7 +48,6 @@ typedef struct
     double temperature;    // 温度
     double humidity;       // 湿度
 } ReportData2IoT;
-
 // 用于存储来自云端的设备指令，下发命令
 typedef struct
 {
@@ -65,7 +61,6 @@ typedef struct
     double temperature;    // 温度
     double humidity;       // 湿度
 } IssueData2MCU;
-
 // 创建接收和发送数据实例
 ReportData2IoT ReportData;
 IssueData2MCU IssueData;
@@ -75,8 +70,72 @@ String cmd = "";
 bool doSend = false;
 long last_stamp = 0;
 
+// 蓝牙配置
+static NimBLEServer *pServer;
+NimBLECharacteristic *pCharacteristicRX = nullptr;
+NimBLECharacteristic *pCharacteristicTX = nullptr;
+#define BLE_NAME "BLE_ESP32C2_Server"
+
 //  看门狗错误计数器
 uint8_t frameErrorCount = 0;
+#define MAX_FRAME_ERRORS 2 // 最大允许错误次数, 否则触发软件复位
+
+class ServerCallbacks : public NimBLEServerCallbacks
+{
+    void onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo) override
+    {
+        Serial.printf("客户端已连接: %s\n", connInfo.getAddress().toString().c_str());
+    }
+
+    void onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) override
+    {
+        Serial.println("客户端断开连接，重新开始广播");
+        NimBLEDevice::startAdvertising();
+    }
+};
+
+class CharacteristicCallbacks : public NimBLECharacteristicCallbacks
+{
+    void onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo) override
+    {
+        String val = pCharacteristic->getValue();
+        if (val != "")
+        {
+            String key = extractValue(val, "key");
+            String value = extractValue(val, "value");
+            parseReceivedData(key + ":" + value);
+            Serial.println("接收到数据：" + val);
+        }
+    }
+};
+
+void BLE_init()
+{
+    NimBLEDevice::init(BLE_NAME);
+
+    pServer = NimBLEDevice::createServer();
+    pServer->setCallbacks(new ServerCallbacks());
+
+    NimBLEService *pService = pServer->createService("ABC0");
+
+    pCharacteristicRX = pService->createCharacteristic(
+        "ABC1",
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
+    pCharacteristicRX->setCallbacks(new CharacteristicCallbacks());
+
+    pCharacteristicTX = pService->createCharacteristic(
+        "ABC2",
+        NIMBLE_PROPERTY::NOTIFY);
+
+    pService->start();
+
+    NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
+    pAdvertising->addServiceUUID("ABC0");
+    pAdvertising->setName(BLE_NAME); // 确保广播名称正确
+    pAdvertising->start();
+
+    Serial.println("BLE 服务初始化完成，开始广播...");
+}
 
 void WIFI_Init()
 {
