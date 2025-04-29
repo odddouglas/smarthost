@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
@@ -5,9 +6,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <esp_system.h> // 添加ESP32系统头文件
-#include <NimBLEDevice.h>
-#include <Arduino.h>
+#include <esp_system.h>
+// #include <NimBLEDevice.h>
+#include <BLEDevice.h>
+#include <BLEServer.h>
+#include <BLEUtils.h>
+#include <BLE2902.h>
 
 // 串口配置
 HardwareSerial SerialPort(1); // 使用 UART1
@@ -38,7 +42,7 @@ const char *mqttPassword = "b19992e854c367b6d48d64c9958882e54bca9b2b8eb52aaf8218
 // 用于存储设备状态，并上报这些属性
 typedef struct
 {
-    bool pcStatus;         // 主机状态
+    int pcStatus;          // 主机状态 （按上位机需求，设置成0和1）
     bool pcFanIn;          // 进风风扇状态
     bool pcFanOut;         // 出风风扇状态
     String pcFanVolume;    // 风速档位 "low" / "medium" / "high"
@@ -70,77 +74,69 @@ String cmd = "";
 bool doSend = false;
 long last_stamp = 0;
 
-// 蓝牙配置
-static NimBLEServer *pServer;
-NimBLECharacteristic *pCharacteristicRX = nullptr;
-NimBLECharacteristic *pCharacteristicTX = nullptr;
-#define BLE_NAME "BLE_ESP32C2_Server"
-
 //  看门狗错误计数器
 uint8_t frameErrorCount = 0;
 #define MAX_FRAME_ERRORS 2 // 最大允许错误次数, 否则触发软件复位
 
-class ServerCallbacks : public NimBLEServerCallbacks
-{
-    void onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo) override
-    {
-        Serial.printf("客户端已连接: %s\n", connInfo.getAddress().toString().c_str());
-    }
+// 蓝牙配置
+BLECharacteristic *pCharacteristic;
+bool isConnected = false; // 是否蓝牙连接
+#define SERVICE_UUID "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+#define CHARACTERISTIC_UUID_RX "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+#define CHARACTERISTIC_UUID_TX "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
+#define BLE_NAME "BLE_ESP32C2_Server"
 
-    void onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) override
-    {
-        Serial.println("客户端断开连接，重新开始广播");
-        NimBLEDevice::startAdvertising();
-    }
+// BLE服务器连接回调
+class BLE_MyServer_Callbacks : public BLEServerCallbacks
+{
+    void onConnect(BLEServer *pServer) { isConnected = true; }
+    void onDisconnect(BLEServer *pServer) { isConnected = false; }
 };
 
-class CharacteristicCallbacks : public NimBLECharacteristicCallbacks
+// BLE特征写入回调
+class BLE_Characteristic_RX_Callbacks : public BLECharacteristicCallbacks
 {
-    void onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo) override
+    void onWrite(BLECharacteristic *pCharacteristic)
     {
-        String val = pCharacteristic->getValue();
-        if (val != "")
+        String rxValueString = pCharacteristic->getValue(); // Get as Arduino String
+        std::string rxValue(rxValueString.c_str());         // Convert to std::string
+        if (rxValue.length() > 0)
         {
-            String key = extractValue(val, "key");
-            String value = extractValue(val, "value");
-            parseReceivedData(key + ":" + value);
-            Serial.println("接收到数据：" + val);
+            Serial.print("[BLE] Received BLE_Value: ");
+            for (int i = 0; i < rxValue.length(); i++)
+                Serial.print(rxValue[i]);
         }
     }
 };
-
-void BLE_init()
+// BLE 初始化函数
+void BLE_Init()
 {
-    NimBLEDevice::init(BLE_NAME);
+    BLEDevice::init(BLE_NAME);
+    BLEServer *pServer = BLEDevice::createServer();
+    pServer->setCallbacks(new BLE_MyServer_Callbacks());
 
-    pServer = NimBLEDevice::createServer();
-    pServer->setCallbacks(new ServerCallbacks());
+    BLEService *pService = pServer->createService(SERVICE_UUID);
 
-    NimBLEService *pService = pServer->createService("ABC0");
+    pCharacteristic = pService->createCharacteristic(
+        CHARACTERISTIC_UUID_TX,
+        BLECharacteristic::PROPERTY_NOTIFY);
+    pCharacteristic->addDescriptor(new BLE2902());
 
-    pCharacteristicRX = pService->createCharacteristic(
-        "ABC1",
-        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
-    pCharacteristicRX->setCallbacks(new CharacteristicCallbacks());
-
-    pCharacteristicTX = pService->createCharacteristic(
-        "ABC2",
-        NIMBLE_PROPERTY::NOTIFY);
+    BLECharacteristic *pCharacteristic_RX = pService->createCharacteristic(
+        CHARACTERISTIC_UUID_RX,
+        BLECharacteristic::PROPERTY_WRITE);
+    pCharacteristic_RX->setCallbacks(new BLE_Characteristic_RX_Callbacks());
 
     pService->start();
+    pServer->getAdvertising()->start();
 
-    NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
-    pAdvertising->addServiceUUID("ABC0");
-    pAdvertising->setName(BLE_NAME); // 确保广播名称正确
-    pAdvertising->start();
-
-    Serial.println("BLE 服务初始化完成，开始广播...");
+    Serial.println("[BLE] waiting...");
 }
 
 void WIFI_Init()
 {
     WiFi.begin(ssid, password);
-    Serial.print("Connecting to WiFi");
+    Serial.print("[WiFi] Connecting to WiFi");
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
@@ -148,7 +144,7 @@ void WIFI_Init()
     }
     Serial.println();
     sendStatusPacket(0x0033);
-    Serial.println("WiFi connected");
+    Serial.println("[WiFi] connected");
     Serial.println(WiFi.localIP());
 }
 
@@ -526,6 +522,7 @@ void setup()
     delay(100);                                         // 等待串口初始化
     WIFI_Init();                                        // 等待wifi连接
     MQTT_Init();                                        // 初始化MQTT尝试连接
+    BLE_Init();                                         // 蓝牙初始化
 }
 
 void loop()
@@ -574,6 +571,7 @@ void loop()
             if (verifySerialFrame(buffer)) // 检验
             {
                 parseDataBuffer(buffer[4] | (buffer[5] << 8)); // 处理命令词ID
+
                 MQTT_Report_Status();
                 delay(50);
                 MQTT_Report_Fan();
