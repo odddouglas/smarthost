@@ -7,11 +7,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <esp_system.h>
-// #include <NimBLEDevice.h>
+
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
+#include <WiFiManager.h> // 必须安装WiFiManager库
+#include <WiFi.h>
+#include <ESPmDNS.h>
 
 // 串口配置
 HardwareSerial SerialPort(1); // 使用 UART1
@@ -515,14 +518,49 @@ void sendStatusPacket(uint16_t cmd_id)
     SerialPort.write(packet, 8);
 }
 
+void WIFI_AP_Init()
+{
+    Serial.begin(115200);
+    Serial.println("\n启动中...");
+
+    // 初始化WiFiManager
+    WiFiManager wifiManager;
+
+    // 可选配置 ----------------------------------------
+    // 设置配网超时时间（单位：秒，超时后自动重启）
+    wifiManager.setTimeout(180);
+    // 自定义AP名称和密码（默认无密码）
+    // wifiManager.autoConnect("ESP32-AP", "12345678");
+    // ------------------------------------------------
+
+    // 尝试连接已保存的WiFi，若失败则启动配网AP
+    if (!wifiManager.autoConnect("ESP32-Config"))
+    {
+        Serial.println("配网失败，重启设备");
+        delay(3000);
+        ESP.restart(); // 重启
+    }
+
+    // 配网成功后的逻辑 --------------------------------
+    Serial.println("\nWiFi已连接！");
+    Serial.print("IP地址: ");
+    Serial.println(WiFi.localIP());
+
+    // 可选：启用mDNS服务（通过域名访问ESP32）
+    if (MDNS.begin("esp32"))
+    {
+        Serial.println("mDNS域名: esp32.local");
+    }
+}
 void setup()
 {
     Serial.begin(9600);                                 // 用于打印调试信息
     SerialPort.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN); // 初始化 UART1，RX=GPIO3，TX=GPIO1
     delay(100);                                         // 等待串口初始化
-    WIFI_Init();                                        // 等待wifi连接
-    MQTT_Init();                                        // 初始化MQTT尝试连接
-    BLE_Init();                                         // 蓝牙初始化
+    // WIFI_Init();                                        // 等待wifi连接
+    WIFI_AP_Init();
+    MQTT_Init(); // 初始化MQTT尝试连接
+    // BLE_Init();                                         // 蓝牙初始化
 }
 
 void loop()
