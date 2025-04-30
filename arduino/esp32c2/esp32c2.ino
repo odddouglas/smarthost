@@ -520,7 +520,6 @@ void sendStatusPacket(uint16_t cmd_id)
 
 void WIFI_AP_Init()
 {
-    Serial.begin(115200);
     Serial.println("\n启动中...");
 
     // 初始化WiFiManager
