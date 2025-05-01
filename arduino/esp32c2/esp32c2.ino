@@ -409,13 +409,6 @@ bool verifySerialFrame(uint8_t *buf)
     }
     printf("解析成功: ID=0x%02X, TYPE=0x%02X, DATA=0x%04X\n", id, type, data);
 
-    if (frameErrorCount >= MAX_FRAME_ERRORS)
-    {
-        Serial.println("连续帧错误超过阈值，即将重启系统...");
-        delay(100);
-        esp_restart(); // 触发软件复位
-    }
-
     frameErrorCount = 0; // 成功时重置计数器
     return true;
 }
@@ -544,7 +537,7 @@ void WIFI_AP_Init()
     Serial.println("\nWiFi已连接！");
     Serial.print("IP地址: ");
     Serial.println(WiFi.localIP());
-
+    // ESP.restart(); // 重启
     // 可选：启用mDNS服务（通过域名访问ESP32）
     if (MDNS.begin("esp32"))
     {
@@ -593,6 +586,12 @@ void loop()
         // 检测完整数据包
         if (bufferIndex >= 8)
         {
+            if (frameErrorCount >= MAX_FRAME_ERRORS)
+            {
+                Serial.println("连续帧错误超过阈值，即将重启系统...");
+                delay(100);
+                esp_restart(); // 触发软件复位
+            }
             Serial.println("=== Full Buffer Received ===");
 
             // 打印整个buffer内容
