@@ -1,4 +1,4 @@
-# Install script for directory: E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project
+# Install script for directory: E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/esp-idf/cmake_install.cmake")
+  include("E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -57,6 +57,6 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-  file(WRITE "E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/${CMAKE_INSTALL_MANIFEST}"
+  file(WRITE "E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()

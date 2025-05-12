@@ -7,7 +7,16 @@
         "*.cjson": "jsonc",
         "*.wxss": "css",
         "*.wxs": "javascript",
-        "freertos.h": "c"
+        "freertos.h": "c",
+        "stdio.h": "c",
+        "nvs_flash.h": "c",
+        "esp_wifi.h": "c",
+        "esp_event.h": "c",
+        "string.h": "c",
+        "esp_err.h": "c",
+        "inttypes.h": "c",
+        "esp_log.h": "c",
+        "stdint.h": "c"
     },
     "idf.flashType": "UART",
     "idf.openOcdConfigs": [

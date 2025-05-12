@@ -1,13 +1,13 @@
 # Target labels
  bootloader
 # Source files and their labels
-E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/CMakeFiles/bootloader
-E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/CMakeFiles/bootloader.rule
-E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/CMakeFiles/bootloader-complete.rule
-E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
-E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
-E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
-E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
-E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
-E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
-E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/CMakeFiles/bootloader
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/CMakeFiles/bootloader.rule
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/CMakeFiles/bootloader-complete.rule
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule

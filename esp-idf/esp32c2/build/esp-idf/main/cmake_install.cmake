@@ -1,4 +1,4 @@
-# Install script for directory: E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/main
+# Install script for directory: E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/main
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

@@ -39,8 +39,8 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/esp-idf/mbedtls/mbedtls/3rdparty/everest/cmake_install.cmake")
-  include("E:/ODDDOUGLAS/maxi-file/esp32/project/esp-idf/sample_project/sample_project/build/esp-idf/mbedtls/mbedtls/3rdparty/p256-m/cmake_install.cmake")
+  include("E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/mbedtls/mbedtls/3rdparty/everest/cmake_install.cmake")
+  include("E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/mbedtls/mbedtls/3rdparty/p256-m/cmake_install.cmake")
 
 endif()
 
