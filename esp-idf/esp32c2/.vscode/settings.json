@@ -1,0 +1,20 @@
+{
+    "C_Cpp.intelliSenseEngine": "default",
+    "idf.espIdfPathWin": "e:\\ODDDOUGLAS\\maxi-file\\esp32\\ESP-IDF\\esp\\v5.3.2\\esp-idf",
+    "idf.toolsPathWin": "e:\\ODDDOUGLAS\\maxi-file\\esp32\\ESP-iDF_TOOLS",
+    "idf.pythonInstallPath": "e:\\ODDDOUGLAS\\maxi-file\\esp32\\ESP-iDF_TOOLS\\tools\\idf-python\\3.11.2\\python.exe",
+    "files.associations": {
+        "*.cjson": "jsonc",
+        "*.wxss": "css",
+        "*.wxs": "javascript",
+        "freertos.h": "c"
+    },
+    "idf.flashType": "UART",
+    "idf.openOcdConfigs": [
+        "board/esp32c2-ftdi.cfg"
+    ],
+    "idf.customExtraVars": {
+        "IDF_TARGET": "esp32c2"
+    },
+    "idf.portWin": "COM19"
+}
