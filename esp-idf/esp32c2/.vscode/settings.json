@@ -16,7 +16,9 @@
         "esp_err.h": "c",
         "inttypes.h": "c",
         "esp_log.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "mqtt_client.h": "c",
+        "semphr.h": "c"
     },
     "idf.flashType": "UART",
     "idf.openOcdConfigs": [
@@ -25,5 +27,5 @@
     "idf.customExtraVars": {
         "IDF_TARGET": "esp32c2"
     },
-    "idf.portWin": "COM19"
+    "idf.portWin": "COM18"
 }

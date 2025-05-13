@@ -31,9 +31,11 @@ PubSubClient client(espClient);
 const char *mqttServer = "e5e7404266.st1.iotda-device.cn-north-4.myhuaweicloud.com";
 const int mqttPort = 1883;
 // 三元组信息
-const char *ClientId = "67fe4c765367f573f7830638_esp32_0_0_2025041512";
+const char *ClientId = "67fe4c765367f573f7830638_esp32_0_0_2025051303";
 const char *mqttUser = "67fe4c765367f573f7830638_esp32";
-const char *mqttPassword = "b19992e854c367b6d48d64c9958882e54bca9b2b8eb52aaf82183ccad88c8ced";
+const char *mqttPassword = "beb57fa257b6fc3dc92d71a515d059d0788640a6f17b82c78860c18c5fde50ff";
+
+
 #define DEVICE_ID "67fe4c765367f573f7830638_esp32"
 #define SERVER_ID "gateway_data"
 // 设备属性上报的 topic
@@ -79,7 +81,7 @@ long last_stamp = 0;
 
 //  看门狗错误计数器
 uint8_t frameErrorCount = 0;
-#define MAX_FRAME_ERRORS 2 // 最大允许错误次数, 否则触发软件复位
+#define MAX_FRAME_ERRORS 20 // 最大允许错误次数, 否则触发软件复位
 
 // 蓝牙配置
 BLECharacteristic *pCharacteristic;
