@@ -8,6 +8,8 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "freertos/semphr.h"
+#include "driver/uart.h"
+#include "freertos/task.h"
 
 #define WIFI_SSID "odddouglas"     // Wi-Fi SSID
 #define WIFI_PASSWORD "odddouglas" // Wi-Fi 密码
@@ -23,8 +25,15 @@
 #define MQTT_TOPIC_COMMAND "$oc/devices/" DEVICE_ID "/sys/commands/#"
 #define MQTT_TOPIC_COMMAND_RESPOND "$oc/devices/" DEVICE_ID "/sys/commands/response/request_id="
 
+#define UART_PORT_NUM UART_NUM_1
+#define UART_BAUD_RATE 115200
+#define UART_TX_PIN 1
+#define UART_RX_PIN 3
+#define BUF_SIZE 1024
+
 static const char *TAG_WIFI = "WIFI";
 static const char *TAG_MQTT = "MQTT";
+static const char *TAG_UART = "UART";
 
 static esp_mqtt_client_handle_t mqtt_handle = NULL;
 static SemaphoreHandle_t s_wifi_connect_sem = NULL;
@@ -63,7 +72,7 @@ void wifi_event_callback(void *event_handler_arg,
         {
         case IP_EVENT_STA_GOT_IP:
             ESP_LOGI(TAG_WIFI, "IP_EVENT_STA_GOT_IP");
-            xSemaphoreGive(s_wifi_connect_sem); //释放信号量，使得mqtt开始连接
+            xSemaphoreGive(s_wifi_connect_sem); // 释放信号量，使得mqtt开始连接
             break;
 
         default:
@@ -105,7 +114,7 @@ void mqtt_event_callback(void *event_handler_arg,
         ESP_LOGI(TAG_MQTT, "MQTT_EVENT_PUBLISHED ACK, msg_id=%d", data->msg_id);
 
         break;
- 
+
     case MQTT_EVENT_DATA:
         ESP_LOGI(TAG_MQTT, "MQTT_EVENT_DATA");
         printf("TOPIC=%.*s\r\n", data->topic_len, data->topic);
@@ -165,6 +174,48 @@ void mqtt_start(void)
     esp_mqtt_client_register_event(mqtt_handle, ESP_EVENT_ANY_ID, mqtt_event_callback, NULL);
     ESP_ERROR_CHECK(esp_mqtt_client_start(mqtt_handle));
 }
+void uart_init(void)
+{
+    uart_config_t uart_config = {
+        .baud_rate = UART_BAUD_RATE,
+        .data_bits = UART_DATA_8_BITS,
+        .parity = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE};
+
+    // 配置 UART 参数
+    uart_param_config(UART_PORT_NUM, &uart_config);
+
+    // 设置 TX RX 引脚
+    uart_set_pin(UART_PORT_NUM, UART_TX_PIN, UART_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+
+    // 安装驱动（含 RX 缓冲区）
+    uart_driver_install(UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, 0);
+}
+
+void uart_send_task(void *arg)
+{
+    const char *msg = "Hello UART\r\n";
+    while (1)
+    {
+        uart_write_bytes(UART_PORT_NUM, msg, strlen(msg));
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
+
+void uart_receive_task(void *arg)
+{
+    uint8_t data[BUF_SIZE];
+    while (1)
+    {
+        int len = uart_read_bytes(UART_PORT_NUM, data, BUF_SIZE - 1, pdMS_TO_TICKS(1000));
+        if (len > 0)
+        {
+            data[len] = '\0'; // null-terminate
+            ESP_LOGI(TAG_UART, "Received: %s", (char *)data);
+        }
+    }
+}
 // 主程序入口
 void app_main(void)
 {
@@ -172,5 +223,9 @@ void app_main(void)
     wifi_start();
     xSemaphoreTake(s_wifi_connect_sem, portMAX_DELAY); // 阻塞等待信号量释放
     mqtt_start();
+
+    uart_init(); // 初始化串口，创建串口任务
+    xTaskCreate(uart_send_task, "uart_send_task", 2048, NULL, 10, NULL);
+    xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
     return;
 }
