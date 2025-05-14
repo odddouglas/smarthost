@@ -13,7 +13,7 @@
 
 #include "driver/uart.h"
 #include "cJSON.h"
-#include "huawei_iot.h"
+#include "bsp_mqtt.h"
 
 #define WIFI_SSID "odddouglas"     // Wi-Fi SSID
 #define WIFI_PASSWORD "odddouglas" // Wi-Fi 密码
