@@ -22,7 +22,10 @@
         "cjson.h": "c",
         "huawei_iot.h": "c",
         "task.h": "c",
-        "uart.h": "c"
+        "uart.h": "c",
+        "esp_mac.h": "c",
+        "bsp_mqtt.h": "c",
+        "bsp_wifi.h": "c"
     },
     "idf.flashType": "UART",
     "idf.openOcdConfigs": [
