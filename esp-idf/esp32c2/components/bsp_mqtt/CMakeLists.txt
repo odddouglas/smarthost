@@ -1,4 +1,4 @@
 
 idf_component_register(SRCS "bsp_mqtt.c"
                        INCLUDE_DIRS "include"
-                       REQUIRES "mqtt" "esp_event")
+                       REQUIRES "mqtt" "esp_event" "json")

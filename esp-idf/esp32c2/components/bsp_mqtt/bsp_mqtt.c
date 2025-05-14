@@ -1,7 +1,5 @@
 #include "bsp_mqtt.h"
 
-
-
 #define MQTT_ADDRESS "mqtt://e5e7404266.st1.iotda-device.cn-north-4.myhuaweicloud.com:1883"
 #define MQTT_CLIENFID "67fe4c765367f573f7830638_esp32_0_0_2025051303"
 #define MQTT_USERNAME "67fe4c765367f573f7830638_esp32"
@@ -15,6 +13,9 @@
 
 static const char *TAG_MQTT = "MQTT";
 static esp_mqtt_client_handle_t mqtt_handle = NULL;
+
+extern ReportData2IoT ReportData;
+extern IssueData2MCU IssueData;
 
 void mqtt_event_callback(void *event_handler_arg,
                          esp_event_base_t event_base,
@@ -75,4 +76,34 @@ void mqtt_start(void)
     mqtt_handle = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_register_event(mqtt_handle, ESP_EVENT_ANY_ID, mqtt_event_callback, NULL);
     ESP_ERROR_CHECK(esp_mqtt_client_start(mqtt_handle));
+}
+
+void mqtt_report_FAN(void)
+{
+    cJSON *root = cJSON_CreateObject();
+    cJSON *services = cJSON_CreateArray();
+    cJSON_AddItemToObject(root, "services", services);
+
+    cJSON *service = cJSON_CreateObject();
+    cJSON_AddItemToArray(services, service);
+    cJSON_AddStringToObject(service, "service_id", SERVER_ID);
+
+    cJSON *properties = cJSON_CreateObject();
+    cJSON_AddItemToObject(service, "properties", properties);
+
+    cJSON *pcFan = cJSON_CreateObject();
+    cJSON_AddStringToObject(pcFan, "pcFanVolume", ReportData.pcFanVolume); // string
+    cJSON_AddBoolToObject(pcFan, "pcFanIn", ReportData.pcFanIn);
+    cJSON_AddBoolToObject(pcFan, "pcFanOut", ReportData.pcFanOut);
+
+    cJSON_AddItemToObject(properties, "pcFan", pcFan);
+
+    char *json_str = cJSON_PrintUnformatted(root);
+    ESP_LOGI("MQTT", "[MQTT] Publish FullStatus:\n%s", json_str);
+
+    int msg_id = esp_mqtt_client_publish(mqtt_handle, MQTT_TOPIC_REPORT, json_str, 0, 1, 0);
+    ESP_LOGI(TAG_MQTT, "MQTT Publish %s, msg_id=%d", (msg_id == -1 ? "failed" : "success"), msg_id);
+
+    cJSON_Delete(root);
+    free(json_str);
 }

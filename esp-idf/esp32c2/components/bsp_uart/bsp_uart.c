@@ -40,7 +40,7 @@ void uart_receive_task(void *arg)
         if (len > 0)
         {
             data[len] = '\0'; // null-terminate
-            ESP_LOGI(TAG_UART, "Received: %s", (char *)data);
+            printf("Received: %s\r\n", (char *)data);
         }
     }
 }
