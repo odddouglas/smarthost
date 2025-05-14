@@ -1,29 +1,22 @@
 #include <stdio.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
+
+
 #include "nvs_flash.h"
 #include "esp_wifi.h"
-#include "mqtt_client.h"
 #include "esp_event.h"
 #include "esp_err.h"
 #include "esp_log.h"
-#include "freertos/semphr.h"
+
 #include "driver/uart.h"
-#include "freertos/task.h"
+#include "cJSON.h"
+#include "huawei_iot.h"
 
 #define WIFI_SSID "odddouglas"     // Wi-Fi SSID
 #define WIFI_PASSWORD "odddouglas" // Wi-Fi 密码
-
-#define MQTT_ADDRESS "mqtt://e5e7404266.st1.iotda-device.cn-north-4.myhuaweicloud.com:1883"
-#define MQTT_CLIENFID "67fe4c765367f573f7830638_esp32_0_0_2025051303"
-#define MQTT_USERNAME "67fe4c765367f573f7830638_esp32"
-#define MQTT_PASSWORD "beb57fa257b6fc3dc92d71a515d059d0788640a6f17b82c78860c18c5fde50ff"
-
-#define DEVICE_ID "67fe4c765367f573f7830638_esp32"
-#define SERVER_ID "gateway_data"
-#define MQTT_TOPIC_REPORT "$oc/devices/" DEVICE_ID "/sys/properties/report"
-#define MQTT_TOPIC_COMMAND "$oc/devices/" DEVICE_ID "/sys/commands/#"
-#define MQTT_TOPIC_COMMAND_RESPOND "$oc/devices/" DEVICE_ID "/sys/commands/response/request_id="
 
 #define UART_PORT_NUM UART_NUM_1
 #define UART_BAUD_RATE 115200
@@ -32,11 +25,41 @@
 #define BUF_SIZE 1024
 
 static const char *TAG_WIFI = "WIFI";
-static const char *TAG_MQTT = "MQTT";
 static const char *TAG_UART = "UART";
 
-static esp_mqtt_client_handle_t mqtt_handle = NULL;
+
 static SemaphoreHandle_t s_wifi_connect_sem = NULL;
+
+typedef struct
+{
+    int pcStatus;          // 主机状态 （按上位机需求，设置成0和1）
+    bool pcFanIn;          // 进风风扇状态
+    bool pcFanOut;         // 出风风扇状态
+    char *pcFanVolume;     // 风速档位 "low" / "medium" / "high"
+    bool pcLightBreathing; // 呼吸灯状态
+    bool pcLightFleeting;  // 闪烁灯状态
+    char *pcLightColor;    // 灯光颜色 "red" / "green" / "blue" / "white" / "purple"
+    double temperature;    // 温度
+    double humidity;       // 湿度
+} ReportData2IoT;
+// 用于存储来自云端的设备指令，下发命令
+typedef struct
+{
+    bool pcStatus;         // 主机状态
+    bool pcFanIn;          // 进风风扇状态
+    bool pcFanOut;         // 出风风扇状态
+    char *pcFanVolume;     // 风速档位 "low" / "medium" / "high"
+    bool pcLightBreathing; // 呼吸灯状态
+    bool pcLightFleeting;  // 闪烁灯状态
+    char *pcLightColor;    // 灯光颜色 "red" / "green" / "blue" / "white" / "purple"
+    double temperature;    // 温度
+    double humidity;       // 湿度
+} IssueData2MCU;
+
+// 创建接收和发送数据实例
+ReportData2IoT ReportData;
+IssueData2MCU IssueData;
+
 // Wi-Fi 事件处理函数
 void wifi_event_callback(void *event_handler_arg,
                          esp_event_base_t event_base,
@@ -82,54 +105,7 @@ void wifi_event_callback(void *event_handler_arg,
     }
 }
 
-void mqtt_event_callback(void *event_handler_arg,
-                         esp_event_base_t event_base,
-                         int32_t event_id,
-                         void *event_data)
-{
-    esp_mqtt_event_handle_t data = (esp_mqtt_event_handle_t)event_data;
 
-    switch (event_id)
-    {
-    case MQTT_EVENT_CONNECTED:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_CONNECTED");
-        esp_mqtt_client_subscribe(mqtt_handle, MQTT_TOPIC_COMMAND, 1);
-        break;
-
-    case MQTT_EVENT_DISCONNECTED:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_DISCONNECTED");
-        break;
-
-    case MQTT_EVENT_SUBSCRIBED:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_SUBSCRIBED ACK");
-        // const char *report_data = "test";
-        // esp_mqtt_client_publish(mqtt_handle, MQTT_TOPIC_REPORT, report_data, strlen(report_data), 1, 0);
-        break;
-
-    case MQTT_EVENT_UNSUBSCRIBED:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_UNSUBSCRIBED ACK");
-        break;
-
-    case MQTT_EVENT_PUBLISHED:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_PUBLISHED ACK, msg_id=%d", data->msg_id);
-
-        break;
-
-    case MQTT_EVENT_DATA:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_DATA");
-        printf("TOPIC=%.*s\r\n", data->topic_len, data->topic);
-        printf("DATA=%.*s\r\n", data->data_len, data->data);
-        break;
-
-    case MQTT_EVENT_ERROR:
-        ESP_LOGE(TAG_MQTT, "MQTT_EVENT_ERROR");
-        break;
-
-    default:
-        ESP_LOGW(TAG_MQTT, "MQTT_DEFAULT");
-        break;
-    }
-}
 
 void wifi_start(void)
 {
@@ -162,18 +138,7 @@ void wifi_start(void)
 
     ESP_ERROR_CHECK(esp_wifi_start()); // 启动 Wi-Fi
 }
-void mqtt_start(void)
-{
-    esp_mqtt_client_config_t mqtt_cfg = {
-        .broker.address.uri = MQTT_ADDRESS,
-        .credentials.client_id = MQTT_CLIENFID,
-        .credentials.username = MQTT_USERNAME,
-        .credentials.authentication.password = MQTT_PASSWORD,
-    };
-    mqtt_handle = esp_mqtt_client_init(&mqtt_cfg);
-    esp_mqtt_client_register_event(mqtt_handle, ESP_EVENT_ANY_ID, mqtt_event_callback, NULL);
-    ESP_ERROR_CHECK(esp_mqtt_client_start(mqtt_handle));
-}
+
 void uart_init(void)
 {
     uart_config_t uart_config = {
@@ -183,14 +148,9 @@ void uart_init(void)
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE};
 
-    // 配置 UART 参数
-    uart_param_config(UART_PORT_NUM, &uart_config);
-
-    // 设置 TX RX 引脚
-    uart_set_pin(UART_PORT_NUM, UART_TX_PIN, UART_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-
-    // 安装驱动（含 RX 缓冲区）
-    uart_driver_install(UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, 0);
+    uart_param_config(UART_PORT_NUM, &uart_config);                                                // 配置 UART 参数
+    uart_set_pin(UART_PORT_NUM, UART_TX_PIN, UART_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE); // 设置 TX RX 引脚
+    uart_driver_install(UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, 0);                               // 安装驱动（含 RX 缓冲区）
 }
 
 void uart_send_task(void *arg)
@@ -223,7 +183,6 @@ void app_main(void)
     wifi_start();
     xSemaphoreTake(s_wifi_connect_sem, portMAX_DELAY); // 阻塞等待信号量释放
     mqtt_start();
-
     uart_init(); // 初始化串口，创建串口任务
     xTaskCreate(uart_send_task, "uart_send_task", 2048, NULL, 10, NULL);
     xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);

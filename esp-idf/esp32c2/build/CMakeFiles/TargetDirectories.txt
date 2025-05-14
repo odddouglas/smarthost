@@ -796,6 +796,13 @@ E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-i
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/wifi_provisioning/CMakeFiles/install.dir
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/wifi_provisioning/CMakeFiles/install/local.dir
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/wifi_provisioning/CMakeFiles/install/strip.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/huawei_iot/CMakeFiles/__idf_huawei_iot.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/huawei_iot/CMakeFiles/edit_cache.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/huawei_iot/CMakeFiles/rebuild_cache.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/huawei_iot/CMakeFiles/list_install_components.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/huawei_iot/CMakeFiles/install.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/huawei_iot/CMakeFiles/install/local.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/huawei_iot/CMakeFiles/install/strip.dir
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/main/CMakeFiles/__idf_main.dir
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/main/CMakeFiles/edit_cache.dir
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/main/CMakeFiles/rebuild_cache.dir
