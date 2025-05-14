@@ -1,1 +1,44 @@
-4b7c48ea418c43a4a448988da69725691c14820b
+0000000000000000000000000000000000000000 0f22116a0223a0b637062f1e458d8d226e27856a odddouglas <18718048671iota@gmail.com> 1744549713 +0800	commit (initial): first commit
+0f22116a0223a0b637062f1e458d8d226e27856a 0f22116a0223a0b637062f1e458d8d226e27856a odddouglas <18718048671iota@gmail.com> 1744549713 +0800	Branch: renamed refs/heads/master to refs/heads/main
+0f22116a0223a0b637062f1e458d8d226e27856a 0f22116a0223a0b637062f1e458d8d226e27856a odddouglas <18718048671iota@gmail.com> 1744550851 +0800	Branch: renamed refs/heads/main to refs/heads/main
+0f22116a0223a0b637062f1e458d8d226e27856a 30a77f06b2a5db6159f33f63bf9e2633383bc339 odddouglas <18718048671iota@gmail.com> 1744735138 +0800	commit: build: 基本完成了HUAWEI IoT的平台连接，网关可以正常上云并上报设备属性，但是存在json包过大的字段过多的情况，需要对云平台的属性进行调整
+30a77f06b2a5db6159f33f63bf9e2633383bc339 335db901b07e822225915f1272711d720cd82f15 odddouglas <18718048671iota@gmail.com> 1744810021 +0800	commit: build: 添加需求文档，提供数据交换的协议（串口，蓝牙）
+335db901b07e822225915f1272711d720cd82f15 ab08e4e2267c6a56e46567469a8cacdbef185346 odddouglas <18718048671iota@gmail.com> 1744810390 +0800	commit: fix: 修改对接文档显示在README.md文档中
+ab08e4e2267c6a56e46567469a8cacdbef185346 e9e3ac1f418335cb7bc9f26107ced9ee32f9b78d odddouglas <18718048671iota@gmail.com> 1744810622 +0800	commit: build: 添加esp32c2的编译库，此时按照流程即可配置arduino框架
+e9e3ac1f418335cb7bc9f26107ced9ee32f9b78d 943545a31022681ba465b85924e126d3e16d6e63 odddouglas <18718048671iota@gmail.com> 1744901381 +0800	commit: add: 更新espc2-m1和espc2-12的手册，同时更新Protel99SE的CI13242语音芯片的电路图
+943545a31022681ba465b85924e126d3e16d6e63 3844686f6cbea4c0830a0066d6b183b0abffc748 odddouglas <18718048671iota@gmail.com> 1744981431 +0800	commit: add: 此时可以完成串口数据的监测，语音芯片的全属性状态通过espc2的IO3串口RX脚，随后再通过espc2的IO20默认串口TX脚发送到电脑的串口助手
+3844686f6cbea4c0830a0066d6b183b0abffc748 7092c03e8636ed8412f70e107aa8c1a5b7a6e68a odddouglas <18718048671iota@gmail.com> 1744987828 +0800	commit: add: 此时能够语音芯片的完整语音信息，并存储以hex的格式到buffer中
+7092c03e8636ed8412f70e107aa8c1a5b7a6e68a 4dd5d526b04733ccf42edeeb5f2145fa75520cd7 odddouglas <18718048671iota@gmail.com> 1745075339 +0800	commit: add: 添加了校验功能（检查校验位），以及打印命令词id，并成功打印调试信息
+4dd5d526b04733ccf42edeeb5f2145fa75520cd7 c9583a524be03b066c0c1782de0b0b709381eaac odddouglas <18718048671iota@gmail.com> 1745077734 +0800	commit: add: 添加软件看门狗，出现校验位错误或者帧头帧尾接收错误5次之后，会进行一次软件复位
+c9583a524be03b066c0c1782de0b0b709381eaac e5dcb8e27c5ed7c32d220a76bdec9ed58f4c41a3 odddouglas <18718048671iota@gmail.com> 1745139418 +0800	commit: add: 串口解析完语音芯片的命令词ID之后进行本地设备属性的更新，并进行一次MQTT的上报属性
+e5dcb8e27c5ed7c32d220a76bdec9ed58f4c41a3 81ed0ae699ddc399ae9d7356403e381d8d4052d4 odddouglas <18718048671iota@gmail.com> 1745156875 +0800	commit: add: 修改对云端下发命令的处理回调函数，调试无误，准备下发到语音芯片
+81ed0ae699ddc399ae9d7356403e381d8d4052d4 2bfb424fdebdd4b6364af0b1d1bdb7dee2b824f5 odddouglas <18718048671iota@gmail.com> 1745158898 +0800	commit: add: 将要上报云平台的设备属性存储至ReportData结构体，将要下发的云平台命令存储至IssueData结构体
+2bfb424fdebdd4b6364af0b1d1bdb7dee2b824f5 f73e8496bd00a4f9cfdab43145ce01ffd1e5d80a odddouglas <18718048671iota@gmail.com> 1745168264 +0800	commit: add: 修改了云平台的命令下发，能够接收命令并完成打印调试信息，但是出现了sendStatusPacket函数失效的问题，便无法进行封包发送
+f73e8496bd00a4f9cfdab43145ce01ffd1e5d80a 37c79305656d60e966c640e6edc5b8cd2839c37a odddouglas <18718048671iota@gmail.com> 1745170301 +0800	commit: fix: 能够正常接收并存储到IssueData结构体中，修复了校验位和计算错误，已经可以进行封包，接下来进行串口发送，等待芯片回应
+37c79305656d60e966c640e6edc5b8cd2839c37a 2fa96ba28d16b7c70fa5bf4ec27e29e1409f1631 odddouglas <18718048671iota@gmail.com> 1745224193 +0800	commit: fix: 完成调试，等待补充技术文档，此时从语音模块中获得数据并上报属性以及下发命令给语音模块并执行，已完成
+2fa96ba28d16b7c70fa5bf4ec27e29e1409f1631 92d8d9bd0d851e76a17f826c7d260d2d5f1cc504 odddouglas <18718048671iota@gmail.com> 1745827318 +0800	commit: feat: 删除无用的DHT库，添加联网成功后发送的命令数据包，让其播报联网成功
+92d8d9bd0d851e76a17f826c7d260d2d5f1cc504 67b545b2e8387a69b72e51cee166024f34023f18 odddouglas <18718048671iota@gmail.com> 1745856759 +0800	commit: add: 导出arduino的编译库bin程序，同时添加了官方的at固件库，添加flash官方烧写工具
+67b545b2e8387a69b72e51cee166024f34023f18 cad1afd80c6eb76cbe9ced012701faa717f2450a odddouglas <18718048671iota@gmail.com> 1745889662 +0800	commit: add: 添加NimBLE库
+cad1afd80c6eb76cbe9ced012701faa717f2450a 67b545b2e8387a69b72e51cee166024f34023f18 odddouglas <18718048671iota@gmail.com> 1745889685 +0800	reset: moving to HEAD^
+67b545b2e8387a69b72e51cee166024f34023f18 2f64a8a0f9b337e2b551ed70f16622a8beb5a53a odddouglas <18718048671iota@gmail.com> 1745889721 +0800	commit: add: 添加NimBLE.h库，添加BLE相关代码
+2f64a8a0f9b337e2b551ed70f16622a8beb5a53a e3a42f84e844ea55fb7ea9d82181dcf15dceae19 odddouglas <18718048671iota@gmail.com> 1745906666 +0800	commit: fix: NimBLE暂不支持c2，改用原生框架的BLE库（尚未验证）
+e3a42f84e844ea55fb7ea9d82181dcf15dceae19 8d880e0a558d4aac9a8aadac53c9c8e16694ac59 odddouglas <18718048671iota@gmail.com> 1746026114 +0800	commit: add: 添加WiFiManager库，实现了AP配网，连接esp的热点之后，会跳转网址，手动进行wifi信息的配置
+8d880e0a558d4aac9a8aadac53c9c8e16694ac59 4f4e95af2203826ea7387ab04d2198bf9b310bf8 odddouglas <18718048671iota@gmail.com> 1746026469 +0800	commit: fix: 串口重复配置导致乱码，另外发现电路板电阻虚焊情况（已解决）
+4f4e95af2203826ea7387ab04d2198bf9b310bf8 4201a66070be41b0359497fbc2b08f09f0da4881 odddouglas <18718048671iota@gmail.com> 1746085302 +0800	commit: fix: wifimanager配网功能正常，但是需要连接esp32热点提交wifi配置信息之后，手机端会自动跳转对应网络进行配置
+4201a66070be41b0359497fbc2b08f09f0da4881 4f4e95af2203826ea7387ab04d2198bf9b310bf8 odddouglas <18718048671iota@gmail.com> 1746085399 +0800	reset: moving to HEAD^
+4f4e95af2203826ea7387ab04d2198bf9b310bf8 b77ed71f45b069396430e147ce244b16bc4976b5 odddouglas <18718048671iota@gmail.com> 1746085449 +0800	commit: fix: wifimanager配网功能正常，但是需要连接esp32热点提交wifi配置信息之后，手机端会自动跳转对应网络进行配置，另外修复了软件看门狗的逻辑（有时检测数据包帧出错超过两次仍然未启动）
+b77ed71f45b069396430e147ce244b16bc4976b5 e43e1348a8af5df15491320c0bbe22c3cd08cade odddouglas <18718048671iota@gmail.com> 1746085472 +0800	pull --tags origin main: Merge made by the 'ort' strategy.
+e43e1348a8af5df15491320c0bbe22c3cd08cade b77ed71f45b069396430e147ce244b16bc4976b5 odddouglas <18718048671iota@gmail.com> 1746085489 +0800	reset: moving to HEAD^
+b77ed71f45b069396430e147ce244b16bc4976b5 d92e0cac6f7d9be3a85d2b0b14fdfba96d35fae7 odddouglas <18718048671iota@gmail.com> 1747039130 +0800	commit: build: 进行移植，在sample示例进行freertos的测试，测试通过，解决了esp32c2芯片的monitor乱码问题，并完成晶振频率和波特率的更改
+d92e0cac6f7d9be3a85d2b0b14fdfba96d35fae7 030d1af88ed5fe78142a09d2583f48bedf314b2a odddouglas <18718048671iota@gmail.com> 1747063559 +0800	commit: feat: 添加 Wi-Fi STA 模式初始化与自动重连逻辑
+030d1af88ed5fe78142a09d2583f48bedf314b2a 87b75ac05d74d990baf6710ca098f9d87b7cf536 odddouglas <18718048671iota@gmail.com> 1747145439 +0800	commit: fix: 调试arduino框架代码，为移植做准备，更新了密钥，同时调整看门狗错误计数器。规范了espidf的调试信息，完成wifi+mqtt的基本连接
+87b75ac05d74d990baf6710ca098f9d87b7cf536 28fc7e81e28918912db799bac99ee10ad31c3961 odddouglas <18718048671iota@gmail.com> 1747189957 +0800	commit: fix: 规范代码格式
+28fc7e81e28918912db799bac99ee10ad31c3961 b9f153e995321582178588c259e94a355de00fd3 odddouglas <18718048671iota@gmail.com> 1747225686 +0800	commit: feat: 添加串口功能，创建接收发任务，TX_PIN为IO1，RX_PIN为IO3
+b9f153e995321582178588c259e94a355de00fd3 7d2f40e004d3fd1396c30d1d4dd4497e44f76a5a odddouglas <18718048671iota@gmail.com> 1747237692 +0800	commit: fix: 将mqtt相关逻辑移植进自定义mqtt组件
+7d2f40e004d3fd1396c30d1d4dd4497e44f76a5a b9f153e995321582178588c259e94a355de00fd3 odddouglas <18718048671iota@gmail.com> 1747237948 +0800	reset: moving to HEAD~
+b9f153e995321582178588c259e94a355de00fd3 4b5939e36c11d425d44245b16c839457b3b8b07b odddouglas <18718048671iota@gmail.com> 1747237985 +0800	commit: fix: 将mqtt相关逻辑移植进自定义mqtt组件
+4b5939e36c11d425d44245b16c839457b3b8b07b 5ef42e71516406f43ffeff67d7855bba0a2925e4 odddouglas <18718048671iota@gmail.com> 1747240054 +0800	commit: fix: 完善bsp_mqtt组件逻辑
+5ef42e71516406f43ffeff67d7855bba0a2925e4 ce18c10404f3f91a7e9a9b22e1a813ea51042000 odddouglas <18718048671iota@gmail.com> 1747241839 +0800	commit: fix: 将wifi相关逻辑移植进自定义mqtt组件，并规范组件结构
+ce18c10404f3f91a7e9a9b22e1a813ea51042000 5ef42e71516406f43ffeff67d7855bba0a2925e4 odddouglas <18718048671iota@gmail.com> 1747243466 +0800	reset: moving to HEAD~
+5ef42e71516406f43ffeff67d7855bba0a2925e4 4b7c48ea418c43a4a448988da69725691c14820b odddouglas <18718048671iota@gmail.com> 1747243506 +0800	commit: fix: 将wifi、uart相关逻辑移植进自定义的bsp_wifi，bsp_uart组件中，并规范组件结构
+4b7c48ea418c43a4a448988da69725691c14820b 971e3d94befb88908e7b77fc59d0538441ff1d97 odddouglas <18718048671iota@gmail.com> 1747247476 +0800	commit: fix: mqtt测试上报属性成功

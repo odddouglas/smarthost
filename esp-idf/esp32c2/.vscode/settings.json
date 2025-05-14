@@ -25,7 +25,8 @@
         "uart.h": "c",
         "esp_mac.h": "c",
         "bsp_mqtt.h": "c",
-        "bsp_wifi.h": "c"
+        "bsp_wifi.h": "c",
+        "bsp_uart.h": "c"
     },
     "idf.flashType": "UART",
     "idf.openOcdConfigs": [

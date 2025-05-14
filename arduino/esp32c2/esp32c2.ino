@@ -524,7 +524,7 @@ void WIFI_AP_Init()
     // 设置配网超时时间（单位：秒，超时后自动重启）
     wifiManager.setTimeout(180);
     // 自定义AP名称和密码（默认无密码）
-    // wifiManager.autoConnect("ESP32-AP", "12345678");
+    wifiManager.autoConnect("odddouglas", "odddouglas");
     // ------------------------------------------------
 
     // 尝试连接已保存的WiFi，若失败则启动配网AP
@@ -551,8 +551,8 @@ void setup()
     Serial.begin(9600);                                 // 用于打印调试信息
     SerialPort.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN); // 初始化 UART1，RX=GPIO3，TX=GPIO1
     delay(100);                                         // 等待串口初始化
-    // WIFI_Init();                                        // 等待wifi连接
-    WIFI_AP_Init();
+    WIFI_Init();                                        // 等待wifi连接
+    //WIFI_AP_Init();
     MQTT_Init(); // 初始化MQTT尝试连接
     // BLE_Init();                                         // 蓝牙初始化
 }
