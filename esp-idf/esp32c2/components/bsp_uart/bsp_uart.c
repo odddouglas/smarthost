@@ -3,8 +3,7 @@
 // 0xA5 0xFA 0x00 0x81 0xC5 0x07 0xEC 0xFB
 
 // 创建接收和发送数据实例
-ReportData2IoT ReportData;
-IssueData2MCU IssueData;
+ReportData2IoT ReportData = {0};
 
 static const char *TAG = "UART";
 uint8_t buffer[FRAME_LEN];
@@ -24,8 +23,6 @@ void uart_init(void)
     uart_set_pin(UART_PORT_NUM, UART_TX_PIN, UART_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE); // 设置 TX RX 引脚
     uart_driver_install(UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, 0);                               // 安装驱动（含 RX 缓冲区）
 }
-
-
 
 void send_status_packet(uint16_t cmd_id)
 {
@@ -79,16 +76,36 @@ void parse_data_buffer(uint16_t data)
 
     ReportData.pcLightBreathing = (lightColor == 1);
     ReportData.pcLightFleeting = (lightColor == 7);
-    ReportData.pcLightColor = (lightColor >= 2 && lightColor <= 6) ? colorMap[lightColor] : "";
+    if (lightColor >= 2 && lightColor <= 6)
+    {
+        strncpy(ReportData.pcLightColor, colorMap[lightColor], LIGHT_COLOR_LEN - 1);
+        ReportData.pcLightColor[LIGHT_COLOR_LEN - 1] = '\0';
+    }
+    else
+    {
+        ReportData.pcLightColor[0] = '\0'; // 空字符串
+    }
 
     if (fanSpeedBits == 1)
-        ReportData.pcFanVolume = "low";
+    {
+        strncpy(ReportData.pcFanVolume, "low", FAN_VOLUME_LEN - 1);
+        ReportData.pcFanVolume[FAN_VOLUME_LEN - 1] = '\0';
+    }
     else if (fanSpeedBits == 2)
-        ReportData.pcFanVolume = "medium";
+    {
+        strncpy(ReportData.pcFanVolume, "medium", FAN_VOLUME_LEN - 1);
+        ReportData.pcFanVolume[FAN_VOLUME_LEN - 1] = '\0';
+    }
     else if (fanSpeedBits == 3)
-        ReportData.pcFanVolume = "high";
+    {
+        strncpy(ReportData.pcFanVolume, "high", FAN_VOLUME_LEN - 1);
+        ReportData.pcFanVolume[FAN_VOLUME_LEN - 1] = '\0';
+    }
+
     else
-        ReportData.pcFanVolume = "";
+    {
+        ReportData.pcFanVolume[0] = '\0'; // 空字符串
+    }
 
     // Debug 输出
     ESP_LOGI(TAG, "【解析数据】主机:%d 呼吸:%d 流光:%d 颜色:%s 风扇IN:%d OUT:%d 风速:%s",

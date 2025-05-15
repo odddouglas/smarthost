@@ -14,6 +14,8 @@
 static const char *TAG = "MQTT";
 static esp_mqtt_client_handle_t mqtt_handle = NULL;
 
+IssueData2MCU IssueData = {0};
+
 void mqtt_event_callback(void *event_handler_arg,
                          esp_event_base_t event_base,
                          int32_t event_id,
@@ -56,7 +58,7 @@ void mqtt_event_callback(void *event_handler_arg,
         ESP_LOGE(TAG, "MQTT_EVENT_ERROR");
         break;
 
-    default:
+    default:   
         ESP_LOGW(TAG, "MQTT_DEFAULT");
         break;
     }
@@ -101,25 +103,34 @@ void mqtt_cmd_handler(const char *topic, const char *payload, int length)
     if (!root)
     {
         ESP_LOGE(TAG, "Failed to parse JSON");
+        mqtt_respond(topic, "failure");
         return;
     }
 
     cJSON *cmd = cJSON_GetObjectItem(root, "command_name");
     cJSON *paras = cJSON_GetObjectItem(root, "paras");
+
     if (!cJSON_IsString(cmd) || !paras)
     {
-        cJSON_Delete(root);
         ESP_LOGE(TAG, "Invalid command or paras");
+        cJSON_Delete(root);
+        mqtt_respond(topic, "failure");
         return;
     }
 
     const char *commandName = cmd->valuestring;
+    bool valid = true;
 
     if (strcmp(commandName, "pcStatus") == 0)
     {
         cJSON *status_item = cJSON_GetObjectItem(paras, "status");
-        IssueData.pcStatus = cJSON_IsTrue(status_item);
-        send_status_packet(IssueData.pcStatus ? 0x0007 : 0x0008);
+        if (cJSON_IsBool(status_item))
+        {
+            IssueData.pcStatus = cJSON_IsTrue(status_item);
+            send_status_packet(IssueData.pcStatus ? 0x0007 : 0x0008);
+        }
+        else
+            valid = false;
     }
     else if (strcmp(commandName, "pcFanVolume") == 0)
     {
@@ -137,24 +148,35 @@ void mqtt_cmd_handler(const char *topic, const char *payload, int length)
             else if (strcmp(vol, "low") == 0)
                 send_status_packet(0x0006);
             else
+            {
                 ESP_LOGW(TAG, "Unknown fan volume: %s", vol);
+                valid = false;
+            }
         }
         else
-        {
-            ESP_LOGE(TAG, "Invalid or missing volume parameter");
-        }
+            valid = false;
     }
     else if (strcmp(commandName, "pcFanIn") == 0)
     {
         cJSON *status_item = cJSON_GetObjectItem(paras, "status");
-        IssueData.pcFanIn = cJSON_IsTrue(status_item);
-        send_status_packet(IssueData.pcFanIn ? 0x0013 : 0x0015);
+        if (cJSON_IsBool(status_item))
+        {
+            IssueData.pcFanIn = cJSON_IsTrue(status_item);
+            send_status_packet(IssueData.pcFanIn ? 0x0013 : 0x0015);
+        }
+        else
+            valid = false;
     }
     else if (strcmp(commandName, "pcFanOut") == 0)
     {
         cJSON *status_item = cJSON_GetObjectItem(paras, "status");
-        IssueData.pcFanOut = cJSON_IsTrue(status_item);
-        send_status_packet(IssueData.pcFanOut ? 0x0014 : 0x0016);
+        if (cJSON_IsBool(status_item))
+        {
+            IssueData.pcFanOut = cJSON_IsTrue(status_item);
+            send_status_packet(IssueData.pcFanOut ? 0x0014 : 0x0016);
+        }
+        else
+            valid = false;
     }
     else if (strcmp(commandName, "pcLightColor") == 0)
     {
@@ -176,36 +198,48 @@ void mqtt_cmd_handler(const char *topic, const char *payload, int length)
             else if (strcmp(color, "purple") == 0)
                 send_status_packet(0x0011);
             else
+            {
                 ESP_LOGW(TAG, "Unknown light color: %s", color);
+                valid = false;
+            }
         }
         else
-        {
-            ESP_LOGE(TAG, "Invalid or missing color parameter");
-        }
+            valid = false;
     }
     else if (strcmp(commandName, "pcLightBreathing") == 0)
     {
         cJSON *status_item = cJSON_GetObjectItem(paras, "status");
-        IssueData.pcLightBreathing = cJSON_IsTrue(status_item);
-        if (IssueData.pcLightBreathing)
-            send_status_packet(0x000C);
+        if (cJSON_IsBool(status_item))
+        {
+            IssueData.pcLightBreathing = cJSON_IsTrue(status_item);
+            if (IssueData.pcLightBreathing)
+                send_status_packet(0x000C);
+        }
+        else
+            valid = false;
     }
     else if (strcmp(commandName, "pcLightFleeting") == 0)
     {
         cJSON *status_item = cJSON_GetObjectItem(paras, "status");
-        IssueData.pcLightFleeting = cJSON_IsTrue(status_item);
-        if (IssueData.pcLightFleeting)
-            send_status_packet(0x0012);
+        if (cJSON_IsBool(status_item))
+        {
+            IssueData.pcLightFleeting = cJSON_IsTrue(status_item);
+            if (IssueData.pcLightFleeting)
+                send_status_packet(0x0012);
+        }
+        else
+            valid = false;
     }
     else
     {
-        mqtt_respond(topic, "failure");
-        cJSON_Delete(root);
         ESP_LOGW(TAG, "Unknown command: %s", commandName);
-        return;
+        valid = false;
     }
 
-    mqtt_respond(topic, "success");
+    if (valid)
+        mqtt_respond(topic, "success");
+    else
+        mqtt_respond(topic, "failure");
 
     // ======== 串口调试输出 ========
     ESP_LOGI(TAG, "【PACKET】【主机状态数据解析】");
