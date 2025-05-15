@@ -44,21 +44,20 @@ void mqtt_event_callback(void *event_handler_arg,
 
     case MQTT_EVENT_PUBLISHED:
         ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED ACK, msg_id=%d", data->msg_id);
-
         break;
 
     case MQTT_EVENT_DATA:
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
         // printf("TOPIC=%.*s\r\n", data->topic_len, data->topic);
         printf("DATA=%.*s\r\n", data->data_len, data->data);
-        mqtt_cmd_handler((char *)data->topic, data->data, data->data_len);
+        mqtt_cmd_handler((char *)data->topic, data->data, data->data_len); // 处理命令
         break;
 
     case MQTT_EVENT_ERROR:
         ESP_LOGE(TAG, "MQTT_EVENT_ERROR");
         break;
 
-    default:   
+    default:
         ESP_LOGW(TAG, "MQTT_DEFAULT");
         break;
     }
@@ -241,20 +240,19 @@ void mqtt_cmd_handler(const char *topic, const char *payload, int length)
     else
         mqtt_respond(topic, "failure");
 
-    // ======== 串口调试输出 ========
-    ESP_LOGI(TAG, "【PACKET】【主机状态数据解析】");
-    ESP_LOGI(TAG, "主机状态：%s", IssueData.pcStatus ? "开启" : "关闭");
-    ESP_LOGI(TAG, "呼吸灯：%s", IssueData.pcLightBreathing ? "开启" : "关闭");
-    ESP_LOGI(TAG, "流光灯：%s", IssueData.pcLightFleeting ? "开启" : "关闭");
-    ESP_LOGI(TAG, "常亮灯：%s", IssueData.pcLightColor);
-    ESP_LOGI(TAG, "进风风扇：%s", IssueData.pcFanIn ? "开启" : "关闭");
-    ESP_LOGI(TAG, "出风风扇：%s", IssueData.pcFanOut ? "开启" : "关闭");
-    ESP_LOGI(TAG, "风速档位：%s", IssueData.pcFanVolume);
+    ESP_LOGI(TAG, "【解析数据】主机:%d 呼吸:%d 流光:%d 颜色:%s 风扇IN:%d OUT:%d 风速:%s",
+             IssueData.pcStatus,
+             IssueData.pcLightBreathing,
+             IssueData.pcLightFleeting,
+             IssueData.pcLightColor,
+             IssueData.pcFanIn,
+             IssueData.pcFanOut,
+             IssueData.pcFanVolume);
 
     cJSON_Delete(root);
 }
 
-void mqtt_report_FAN(void)
+void mqtt_report_Fan(void)
 {
     cJSON *root = cJSON_CreateObject();
     cJSON *services = cJSON_CreateArray();
@@ -275,11 +273,106 @@ void mqtt_report_FAN(void)
     cJSON_AddItemToObject(properties, "pcFan", pcFan);
 
     char *json_str = cJSON_PrintUnformatted(root);
-    ESP_LOGI("MQTT", "[MQTT] Publish FullStatus:\n%s", json_str);
+    ESP_LOGI(TAG, "[MQTT] Publish FullStatus:\n%s", json_str);
 
     int msg_id = esp_mqtt_client_publish(mqtt_handle, MQTT_TOPIC_REPORT, json_str, 0, 1, 0);
     ESP_LOGI(TAG, "MQTT Publish %s, msg_id=%d", (msg_id == -1 ? "failed" : "success"), msg_id);
 
     cJSON_Delete(root);
     free(json_str);
+}
+void mqtt_report_BaseData(void)
+{
+    cJSON *root = cJSON_CreateObject();
+    cJSON *services = cJSON_CreateArray();
+    cJSON_AddItemToObject(root, "services", services);
+
+    cJSON *service = cJSON_CreateObject();
+    cJSON_AddItemToArray(services, service);
+    cJSON_AddStringToObject(service, "service_id", SERVER_ID);
+
+    cJSON *properties = cJSON_CreateObject();
+    cJSON_AddItemToObject(service, "properties", properties);
+
+    // 构造 pcBaseData 对象
+    cJSON *pcBaseData = cJSON_CreateObject();
+    cJSON_AddNumberToObject(pcBaseData, "temperature", ReportData.temperature);
+    cJSON_AddNumberToObject(pcBaseData, "humidity", ReportData.humidity);
+    cJSON_AddItemToObject(properties, "pcBaseData", pcBaseData);
+
+    // 转换为字符串并发布
+    char *json_str = cJSON_PrintUnformatted(root);
+    ESP_LOGI(TAG, "[MQTT] Publish BaseData:\n%s", json_str);
+
+    int msg_id = esp_mqtt_client_publish(mqtt_handle, MQTT_TOPIC_REPORT, json_str, 0, 1, 0);
+    ESP_LOGI(TAG, "MQTT Publish %s, msg_id=%d", (msg_id == -1 ? "failed" : "success"), msg_id);
+
+    cJSON_Delete(root);
+    free(json_str);
+}
+void mqtt_report_Status(void)
+{
+    // 创建 JSON 对象
+    cJSON *root = cJSON_CreateObject();
+    cJSON *services = cJSON_CreateArray();
+    cJSON_AddItemToObject(root, "services", services);
+
+    cJSON *service = cJSON_CreateObject();
+    cJSON_AddItemToArray(services, service);
+    cJSON_AddStringToObject(service, "service_id", SERVER_ID);
+
+    cJSON *properties = cJSON_CreateObject();
+    cJSON_AddItemToObject(service, "properties", properties);
+
+    // 填充 pcStatus 数据
+    cJSON_AddNumberToObject(properties, "pcStatus", ReportData.pcStatus);
+
+    // 转换为字符串并发布
+    char *json_str = cJSON_PrintUnformatted(root);
+    ESP_LOGI(TAG, "[MQTT] Publish Status:\n%s", json_str);
+
+    int msg_id = esp_mqtt_client_publish(mqtt_handle, MQTT_TOPIC_REPORT, json_str, 0, 1, 0);
+    ESP_LOGI(TAG, "MQTT Publish %s, msg_id=%d", (msg_id == -1 ? "failed" : "success"), msg_id);
+
+    // 清理 JSON 对象和字符串
+    cJSON_Delete(root);
+    free(json_str);
+}
+void mqtt_report_Light(void)
+{
+    // 创建 JSON 对象
+    cJSON *root = cJSON_CreateObject();
+    cJSON *services = cJSON_CreateArray();
+    cJSON_AddItemToObject(root, "services", services);
+
+    cJSON *service = cJSON_CreateObject();
+    cJSON_AddItemToArray(services, service);
+    cJSON_AddStringToObject(service, "service_id", SERVER_ID);
+
+    cJSON *properties = cJSON_CreateObject();
+    cJSON_AddItemToObject(service, "properties", properties);
+
+    // 创建 pcLight 数据
+    cJSON *pcLight = cJSON_CreateObject();
+    cJSON_AddBoolToObject(pcLight, "pcLightBreathing", ReportData.pcLightBreathing);
+    cJSON_AddBoolToObject(pcLight, "pcLightFleeting", ReportData.pcLightFleeting);
+    cJSON_AddStringToObject(pcLight, "pcLightColor", ReportData.pcLightColor);
+    cJSON_AddItemToObject(properties, "pcLight", pcLight);
+
+    // 序列化 JSON 数据为字符串
+    char *jsonString = cJSON_PrintUnformatted(root);
+    if (!jsonString) {
+        ESP_LOGE(TAG, "Failed to serialize JSON");
+        cJSON_Delete(root);
+        return;
+    }
+
+    // 发布到 MQTT 主题
+    int msg_id = esp_mqtt_client_publish(mqtt_handle, MQTT_TOPIC_REPORT, jsonString, 0, 1, 0);
+    ESP_LOGI(TAG, "[MQTT] Publish Light Data: %s", jsonString);
+    ESP_LOGI(TAG, "MQTT Publish %s, msg_id=%d", (msg_id == -1 ? "failed" : "success"), msg_id);
+
+    // 清理 JSON 对象和字符串
+    cJSON_Delete(root);
+    free(jsonString);
 }

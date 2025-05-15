@@ -57,10 +57,15 @@ void uart_receive_task(void *arg)
                     uint16_t data = buffer[4] | (buffer[5] << 8);
                     parse_data_buffer(data);
 
-                    // 上报数据（模拟）
-                    // MQTT_Report_Status();
-                    // MQTT_Report_Fan();
-                    // MQTT_Report_Light();
+                    // 上报数据
+                    mqtt_report_Fan();
+                    vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    mqtt_report_BaseData();
+                    vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    mqtt_report_Status();
+                    vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    mqtt_report_Light();
+                    vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
                 }
 
                 bufferIndex = 0;
