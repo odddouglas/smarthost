@@ -10,6 +10,9 @@
 #include "esp_log.h"
 #include "bsp_mqtt.h"
 
+extern uint8_t buffer[];
+extern uint8_t bufferIndex;
+
 void uart_init(void);
 void uart_send_task(void *arg);
 void uart_receive_task(void *arg);

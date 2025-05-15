@@ -7,13 +7,16 @@
 #define BUF_SIZE 1024
 #define FRAME_LEN 8
 #define MAX_FRAME_ERRORS 5
+
+// 0xA5 0xFA 0x00 0x81 0xC5 0x07 0xEC 0xFB
+
 // 创建接收和发送数据实例
 ReportData2IoT ReportData;
 IssueData2MCU IssueData;
 
 static const char *TAG_UART = "UART";
-static uint8_t buffer[FRAME_LEN];
-static uint8_t bufferIndex = 0;
+uint8_t buffer[FRAME_LEN];
+uint8_t bufferIndex = 0;
 static int frameErrorCount = 0;
 
 void uart_init(void)
@@ -52,7 +55,7 @@ void uart_receive_task(void *arg)
 
             if (bufferIndex >= FRAME_LEN)
             {
-                
+
                 for (int i = 0; i < FRAME_LEN; i++)
                     printf("0x%02X ", buffer[i]);
                 printf("\n");
@@ -127,8 +130,7 @@ void parse_data_buffer(uint16_t data)
     uint8_t fanSpeedBits = (data >> 9) & 0x03;
 
     const char *colorMap[] = {
-        "", "breathing", "red", "green", "blue", "white", "purple", "fleeting"
-    };
+        "", "breathing", "red", "green", "blue", "white", "purple", "fleeting"};
 
     ReportData.pcLightBreathing = (lightColor == 1);
     ReportData.pcLightFleeting = (lightColor == 7);

@@ -1,6 +1,5 @@
 #include "bsp_wifi.h"
 
-
 static const char *TAG_WIFI = "WIFI";
 #define WIFI_SSID "odddouglas"     // Wi-Fi SSID
 #define WIFI_PASSWORD "odddouglas" // Wi-Fi 密码

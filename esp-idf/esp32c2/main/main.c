@@ -16,6 +16,7 @@ void test_task(void *pvParameters)
 
     while (1)
     {
+        printf("0x%02X \r\n",buffer[7]);
         vTaskDelay(xDelay); // 延时
     }
 }
@@ -32,7 +33,7 @@ void app_main(void)
     xTaskCreate(uart_send_task, "uart_send_task", 2048, NULL, 10, NULL);
     xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
 
-    xTaskCreate(test_task, "mqtt_report_task", 4096, NULL, 8, NULL);
+    xTaskCreate(test_task, "test_task", 4096, NULL, 8, NULL);
 
     return;
 }
