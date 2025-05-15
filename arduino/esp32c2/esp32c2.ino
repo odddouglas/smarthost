@@ -351,7 +351,7 @@ void MQTT_CmdCallback(char *topic, byte *payload, unsigned int length)
         else if (IssueData.pcLightColor == "purple")
             sendStatusPacket(0x0011);
     }
-    else if (commandName == "pcLgihtBreathing")
+    else if (commandName == "pcLightBreathing")
     {
         IssueData.pcLightBreathing = doc["paras"]["status"].as<bool>();
         if (IssueData.pcLightBreathing)

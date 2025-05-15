@@ -20,6 +20,15 @@ void test_task(void *pvParameters)
         vTaskDelay(xDelay); // 延时
     }
 }
+void uart_send_task(void *arg)
+{
+    const char *msg = "Hello UART\r\n";
+    while (1)
+    {
+        uart_write_bytes(UART_PORT_NUM, msg, strlen(msg));
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
 void uart_receive_task(void *arg)
 {
     uint8_t byte;

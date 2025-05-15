@@ -25,15 +25,7 @@ void uart_init(void)
     uart_driver_install(UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, 0);                               // 安装驱动（含 RX 缓冲区）
 }
 
-void uart_send_task(void *arg)
-{
-    const char *msg = "Hello UART\r\n";
-    while (1)
-    {
-        uart_write_bytes(UART_PORT_NUM, msg, strlen(msg));
-        vTaskDelay(pdMS_TO_TICKS(2000));
-    }
-}
+
 
 void send_status_packet(uint16_t cmd_id)
 {

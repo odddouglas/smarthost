@@ -9,6 +9,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "cJSON.h"
+#include "bsp_uart.h"
 
 typedef struct
 {
@@ -41,5 +42,7 @@ extern IssueData2MCU IssueData;
 
 void mqtt_start(void);
 void mqtt_event_callback(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
+void mqtt_respond(const char *topic, const char *result);
+void mqtt_cmd_handler(const char *topic, const char *payload, int length);
 void mqtt_report_FAN(void);
 #endif //_BSP_MQTT_H_
