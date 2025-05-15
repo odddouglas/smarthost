@@ -4,6 +4,7 @@
 
 // 创建接收和发送数据实例
 ReportData2IoT ReportData = {0};
+ReportData2IoT LastData = {0};
 
 static const char *TAG = "UART";
 uint8_t buffer[FRAME_LEN];
@@ -111,4 +112,28 @@ void parse_data_buffer(uint16_t data)
     ESP_LOGI(TAG, "【解析数据】主机:%d 呼吸:%d 流光:%d 颜色:%s 风扇IN:%d OUT:%d 风速:%s",
              ReportData.pcStatus, ReportData.pcLightBreathing, ReportData.pcLightFleeting,
              ReportData.pcLightColor, ReportData.pcFanIn, ReportData.pcFanOut, ReportData.pcFanVolume);
+}
+
+bool isFanDataChanged()
+{
+    return strcmp(ReportData.pcFanVolume, LastData.pcFanVolume) != 0 ||
+           ReportData.pcFanIn != LastData.pcFanIn ||
+           ReportData.pcFanOut != LastData.pcFanOut;
+}
+bool isBaseDataChanged()
+{
+    return fabs(ReportData.temperature - LastData.temperature) > 0.01f ||
+           fabs(ReportData.humidity - LastData.humidity) > 0.01f;
+}
+
+bool isStatusChanged()
+{
+    return ReportData.pcStatus != LastData.pcStatus;
+}
+
+bool isLightChanged()
+{
+    return ReportData.pcLightBreathing != LastData.pcLightBreathing ||
+           ReportData.pcLightFleeting != LastData.pcLightFleeting ||
+           strcmp(ReportData.pcLightColor, LastData.pcLightColor) != 0;
 }

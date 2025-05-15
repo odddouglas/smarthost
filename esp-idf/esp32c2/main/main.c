@@ -58,14 +58,46 @@ void uart_receive_task(void *arg)
                     parse_data_buffer(data);
 
                     // 上报数据
-                    mqtt_report_Fan();
-                    vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
-                    mqtt_report_BaseData();
-                    vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
-                    mqtt_report_Status();
-                    vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
-                    mqtt_report_Light();
-                    vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    // mqtt_report_Fan();
+                    // vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    // mqtt_report_BaseData();
+                    // vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    // mqtt_report_Status();
+                    // vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    // mqtt_report_Light();
+                    // vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    if (isFanDataChanged())
+                    {
+                        mqtt_report_Fan();
+                        memcpy(LastData.pcFanVolume, ReportData.pcFanVolume, sizeof(LastData.pcFanVolume));
+                        LastData.pcFanIn = ReportData.pcFanIn;
+                        LastData.pcFanOut = ReportData.pcFanOut;
+                        vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    }
+
+                    if (isBaseDataChanged())
+                    {
+                        mqtt_report_BaseData();
+                        LastData.temperature = ReportData.temperature;
+                        LastData.humidity = ReportData.humidity;
+                        vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    }
+
+                    if (isStatusChanged())
+                    {
+                        mqtt_report_Status();
+                        LastData.pcStatus = ReportData.pcStatus;
+                        vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    }
+
+                    if (isLightChanged())
+                    {
+                        mqtt_report_Light();
+                        LastData.pcLightBreathing = ReportData.pcLightBreathing;
+                        LastData.pcLightFleeting = ReportData.pcLightFleeting;
+                        strcpy(LastData.pcLightColor, ReportData.pcLightColor);
+                        vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+                    }
                 }
 
                 bufferIndex = 0;

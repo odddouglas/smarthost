@@ -1,6 +1,7 @@
 #ifndef _BSP_UART_H_
 #define _BSP_UART_H_
 #include <stdio.h>
+#include <math.h>
 #include <string.h>
 #include <stdbool.h>
 #include "driver/uart.h"
@@ -26,4 +27,9 @@ void uart_init(void);
 void send_status_packet(uint16_t cmd_id);
 bool verify_serial_frame(uint8_t *buf);
 void parse_data_buffer(uint16_t data);
+bool isFanDataChanged(void);
+bool isBaseDataChanged(void);
+bool isStatusChanged(void);
+bool isLightChanged(void);
+
 #endif // _BSP_WIFI_H_
