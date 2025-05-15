@@ -10,8 +10,17 @@
 #include "esp_log.h"
 #include "bsp_mqtt.h"
 
-extern uint8_t buffer[];
+#define UART_PORT_NUM UART_NUM_1
+#define UART_BAUD_RATE 9600
+#define UART_TX_PIN 1
+#define UART_RX_PIN 3
+#define BUF_SIZE 1024
+#define FRAME_LEN 8
+#define MAX_FRAME_ERRORS 5
+
+extern uint8_t buffer[]; // from bsp_uart.c
 extern uint8_t bufferIndex;
+extern uint8_t frameErrorCount;
 
 void uart_init(void);
 void uart_send_task(void *arg);

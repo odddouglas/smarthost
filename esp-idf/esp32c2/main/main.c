@@ -7,7 +7,7 @@
 #include "bsp_mqtt.h"
 #include "bsp_wifi.h"
 #include "bsp_uart.h"
-
+static const char *TAG = "MAIN";
 SemaphoreHandle_t s_wifi_connect_sem = NULL;
 
 void test_task(void *pvParameters)
@@ -16,11 +16,49 @@ void test_task(void *pvParameters)
 
     while (1)
     {
-        printf("0x%02X \r\n",buffer[7]);
+        // printf("0x%02X \r\n",buffer[7]);
         vTaskDelay(xDelay); // 延时
     }
 }
+void uart_receive_task(void *arg)
+{
+    uint8_t byte;
+    while (1)
+    {
+        int len = uart_read_bytes(UART_PORT_NUM, &byte, 1, pdMS_TO_TICKS(100));
+        if (len > 0)
+        {
+            buffer[bufferIndex++] = byte;
 
+            if (bufferIndex >= FRAME_LEN)
+            {
+
+                for (int i = 0; i < FRAME_LEN; i++)
+                    printf("0x%02X ", buffer[i]);
+                printf("\n");
+
+                if (frameErrorCount >= MAX_FRAME_ERRORS)
+                {
+                    ESP_LOGE(TAG, "连续帧错误过多，系统将重启");
+                    esp_restart();
+                }
+
+                if (verify_serial_frame(buffer))
+                {
+                    uint16_t data = buffer[4] | (buffer[5] << 8);
+                    parse_data_buffer(data);
+
+                    // 上报数据（模拟）
+                    // MQTT_Report_Status();
+                    // MQTT_Report_Fan();
+                    // MQTT_Report_Light();
+                }
+
+                bufferIndex = 0;
+            }
+        }
+    }
+}
 // 主程序入口
 void app_main(void)
 {

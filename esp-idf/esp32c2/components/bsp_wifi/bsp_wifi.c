@@ -1,10 +1,6 @@
 #include "bsp_wifi.h"
 
-static const char *TAG_WIFI = "WIFI";
-#define WIFI_SSID "odddouglas"     // Wi-Fi SSID
-#define WIFI_PASSWORD "odddouglas" // Wi-Fi 密码
-
-extern SemaphoreHandle_t s_wifi_connect_sem;
+static const char *TAG = "WIFI";
 
 // Wi-Fi 事件处理函数
 void wifi_event_callback(void *event_handler_arg,
@@ -17,21 +13,21 @@ void wifi_event_callback(void *event_handler_arg,
         switch (event_id)
         {
         case WIFI_EVENT_STA_START:
-            ESP_LOGI(TAG_WIFI, "WIFI_EVENT_STA_START");
+            ESP_LOGI(TAG, "WIFI_EVENT_STA_START");
             esp_wifi_connect();
             break;
 
         case WIFI_EVENT_STA_CONNECTED:
-            ESP_LOGI(TAG_WIFI, "WIFI_EVENT_STA_CONNECTED");
+            ESP_LOGI(TAG, "WIFI_EVENT_STA_CONNECTED");
             break;
 
         case WIFI_EVENT_STA_DISCONNECTED:
-            ESP_LOGW(TAG_WIFI, "WIFI_EVENT_STA_DISCONNECTED");
+            ESP_LOGW(TAG, "WIFI_EVENT_STA_DISCONNECTED");
             esp_wifi_connect();
             break;
 
         default:
-            ESP_LOGI(TAG_WIFI, "WIFI_DEFAULT:");
+            ESP_LOGI(TAG, "WIFI_DEFAULT:");
             break;
         }
     }
@@ -40,12 +36,12 @@ void wifi_event_callback(void *event_handler_arg,
         switch (event_id)
         {
         case IP_EVENT_STA_GOT_IP:
-            ESP_LOGI(TAG_WIFI, "IP_EVENT_STA_GOT_IP");
+            ESP_LOGI(TAG, "IP_EVENT_STA_GOT_IP");
             xSemaphoreGive(s_wifi_connect_sem); // 释放信号量，使得mqtt开始连接
             break;
 
         default:
-            ESP_LOGI(TAG_WIFI, "IP_DEFAULT:");
+            ESP_LOGI(TAG, "IP_DEFAULT:");
             break;
         }
     }

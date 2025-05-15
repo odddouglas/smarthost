@@ -11,11 +11,8 @@
 #define MQTT_TOPIC_COMMAND "$oc/devices/" DEVICE_ID "/sys/commands/#"
 #define MQTT_TOPIC_COMMAND_RESPOND "$oc/devices/" DEVICE_ID "/sys/commands/response/request_id="
 
-static const char *TAG_MQTT = "MQTT";
+static const char *TAG = "MQTT";
 static esp_mqtt_client_handle_t mqtt_handle = NULL;
-
-extern ReportData2IoT ReportData;
-extern IssueData2MCU IssueData;
 
 void mqtt_event_callback(void *event_handler_arg,
                          esp_event_base_t event_base,
@@ -27,41 +24,41 @@ void mqtt_event_callback(void *event_handler_arg,
     switch (event_id)
     {
     case MQTT_EVENT_CONNECTED:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_CONNECTED");
+        ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         esp_mqtt_client_subscribe(mqtt_handle, MQTT_TOPIC_COMMAND, 1);
         break;
 
     case MQTT_EVENT_DISCONNECTED:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_DISCONNECTED");
+        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
         break;
 
     case MQTT_EVENT_SUBSCRIBED:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_SUBSCRIBED ACK");
+        ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED ACK");
         // const char *report_data = "test";
         // esp_mqtt_client_publish(mqtt_handle, MQTT_TOPIC_REPORT, report_data, strlen(report_data), 1, 0);
         break;
 
     case MQTT_EVENT_UNSUBSCRIBED:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_UNSUBSCRIBED ACK");
+        ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED ACK");
         break;
 
     case MQTT_EVENT_PUBLISHED:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_PUBLISHED ACK, msg_id=%d", data->msg_id);
+        ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED ACK, msg_id=%d", data->msg_id);
 
         break;
 
     case MQTT_EVENT_DATA:
-        ESP_LOGI(TAG_MQTT, "MQTT_EVENT_DATA");
+        ESP_LOGI(TAG, "MQTT_EVENT_DATA");
         // printf("TOPIC=%.*s\r\n", data->topic_len, data->topic);
         printf("DATA=%.*s\r\n", data->data_len, data->data);
         break;
 
     case MQTT_EVENT_ERROR:
-        ESP_LOGE(TAG_MQTT, "MQTT_EVENT_ERROR");
+        ESP_LOGE(TAG, "MQTT_EVENT_ERROR");
         break;
 
     default:
-        ESP_LOGW(TAG_MQTT, "MQTT_DEFAULT");
+        ESP_LOGW(TAG, "MQTT_DEFAULT");
         break;
     }
 }
@@ -102,7 +99,7 @@ void mqtt_report_FAN(void)
     ESP_LOGI("MQTT", "[MQTT] Publish FullStatus:\n%s", json_str);
 
     int msg_id = esp_mqtt_client_publish(mqtt_handle, MQTT_TOPIC_REPORT, json_str, 0, 1, 0);
-    ESP_LOGI(TAG_MQTT, "MQTT Publish %s, msg_id=%d", (msg_id == -1 ? "failed" : "success"), msg_id);
+    ESP_LOGI(TAG, "MQTT Publish %s, msg_id=%d", (msg_id == -1 ? "failed" : "success"), msg_id);
 
     cJSON_Delete(root);
     free(json_str);

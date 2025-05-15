@@ -36,6 +36,9 @@ typedef struct
     double humidity;
 } IssueData2MCU;
 
+extern ReportData2IoT ReportData; // from bsp_uart.c
+extern IssueData2MCU IssueData;
+
 void mqtt_start(void);
 void mqtt_event_callback(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
 void mqtt_report_FAN(void);

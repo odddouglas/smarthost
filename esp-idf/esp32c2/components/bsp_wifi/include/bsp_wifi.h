@@ -11,6 +11,12 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+
+#define WIFI_SSID "odddouglas"     // Wi-Fi SSID
+#define WIFI_PASSWORD "odddouglas" // Wi-Fi 密码
+
+extern SemaphoreHandle_t s_wifi_connect_sem; // form main.c
+
 void wifi_start(void);
 void wifi_event_callback(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
 
