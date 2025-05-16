@@ -1,16 +1,8 @@
 #ifndef _BSP_WIFI_H_
 #define _BSP_WIFI_H_
-#include <stdio.h>
-#include <string.h>
-#include "nvs_flash.h"
+
+#include "main.h"
 #include "esp_wifi.h"
-#include "esp_event.h"
-#include "esp_err.h"
-#include "esp_log.h"
-#include "esp_mac.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
 
 #define WIFI_SSID "odddouglas"     // Wi-Fi SSID
 #define WIFI_PASSWORD "odddouglas" // Wi-Fi 密码

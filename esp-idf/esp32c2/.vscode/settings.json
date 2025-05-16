@@ -30,7 +30,10 @@
         "bsp_ble.h": "c",
         "esp_gatts_api.h": "c",
         "esp_bt.h": "c",
-        "esp_gap_ble_api.h": "c"
+        "esp_gap_ble_api.h": "c",
+        "main.h": "c",
+        "stdlib.h": "c",
+        "event_groups.h": "c"
     },
     "idf.flashType": "UART",
     "idf.openOcdConfigs": [
@@ -39,5 +42,5 @@
     "idf.customExtraVars": {
         "IDF_TARGET": "esp32c2"
     },
-    "idf.portWin": "COM22"
+    "idf.portWin": "COM19"
 }

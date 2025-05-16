@@ -1,31 +1,15 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-#include "esp_system.h"
-#include "esp_log.h"
-#include "esp_bt.h"
-#include "esp_mac.h"
-#include "esp_gap_ble_api.h"
-#include "esp_gatts_api.h"
-#include "esp_bt_defs.h"
-#include "esp_bt_main.h"
-#include "esp_gatt_common_api.h"
-#include "nvs_flash.h"
+#include "bsp_ble.h"
 
-#define TAG "BLE_CFG"
+static const char *TAG = "BLE";
 
 // 设备名称
-#define BLE_DEVICE_NAME "ESP32-HOME"
+#define BLE_DEVICE_NAME "ESP32-C2"
 
 #define ESP_APP_ID 0x55
-
 #define SVC_IND_ID1 0
 #define SVC_IND_ID2 1
 
-// 蓝牙模块
+
 enum
 {
     // 服务1
@@ -409,7 +393,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
  */
 esp_err_t ble_cfg_net_init(void)
 {
-    //ESP_ERROR_CHECK(nvs_flash_init()); //main中初始化
+    // ESP_ERROR_CHECK(nvs_flash_init()); //main中初始化
     esp_err_t ret;
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
 

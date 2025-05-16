@@ -1,6 +1,14 @@
-#ifndef _BLE_APP_H_
-#define _BLE_APP_H_
-#include "esp_err.h"
+#ifndef _BSP_BLE_H_
+#define _BSP_BLE_H_
+
+#include "main.h"
+
+#include "esp_bt.h"
+#include "esp_gap_ble_api.h"
+#include "esp_gatts_api.h"
+#include "esp_bt_defs.h"
+#include "esp_bt_main.h"
+#include "esp_gatt_common_api.h"
 
 /**
  * 初始化并启动蓝牙BLE

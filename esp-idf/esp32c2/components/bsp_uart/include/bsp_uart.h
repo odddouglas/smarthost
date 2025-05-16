@@ -1,14 +1,8 @@
 #ifndef _BSP_UART_H_
 #define _BSP_UART_H_
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <stdbool.h>
+
+#include "main.h"
 #include "driver/uart.h"
-#include "esp_mac.h"
-#include "esp_event.h"
-#include "esp_err.h"
-#include "esp_log.h"
 #include "bsp_mqtt.h"
 
 #define UART_PORT_NUM UART_NUM_1

@@ -1,19 +1,15 @@
 #ifndef _BSP_MQTT_H_
 #define _BSP_MQTT_H_
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
+
+#include "main.h"
 #include "mqtt_client.h"
-#include "esp_mac.h"
-#include "esp_event.h"
-#include "esp_err.h"
-#include "esp_log.h"
-#include "cJSON.h"
-#include "freertos/semphr.h"
 #include "bsp_uart.h"
+#include "cJSON.h"
+
 #define FAN_VOLUME_LEN 10
 #define LIGHT_COLOR_LEN 10
 #define MQTT_REPORT_INTERVAL_MS 20
+
 typedef struct
 {
     int pcStatus;                       // 主机状态
@@ -40,10 +36,10 @@ typedef struct
     double humidity;                    // 湿度
 } IssueData2MCU;
 
-extern ReportData2IoT ReportData; // from bsp_uart.c
-extern ReportData2IoT LastData;   // from bsp_uart.c
-extern IssueData2MCU IssueData;   // from bsp_mqtt.c
-extern SemaphoreHandle_t s_mqtt_connect_sem; //from main.c
+extern ReportData2IoT ReportData;            // from bsp_uart.c
+extern ReportData2IoT LastData;              // from bsp_uart.c
+extern IssueData2MCU IssueData;              // from bsp_mqtt.c
+extern SemaphoreHandle_t s_mqtt_connect_sem; // from main.c
 
 void mqtt_start(void);
 void mqtt_event_callback(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);

@@ -1,13 +1,10 @@
-#include <stdio.h>
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
-
+#include "main.h"
+#include "nvs_flash.h"
 #include "bsp_ble.h"
 #include "bsp_mqtt.h"
 #include "bsp_wifi.h"
 #include "bsp_uart.h"
+
 static const char *TAG = "MAIN";
 SemaphoreHandle_t s_wifi_connect_sem = NULL;
 SemaphoreHandle_t s_mqtt_connect_sem = NULL;
@@ -22,15 +19,7 @@ void test_task(void *pvParameters)
         vTaskDelay(xDelay); // 延时
     }
 }
-void uart_send_task(void *arg)
-{
-    const char *msg = "Hello UART\r\n";
-    while (1)
-    {
-        uart_write_bytes(UART_PORT_NUM, msg, strlen(msg));
-        vTaskDelay(pdMS_TO_TICKS(2000));
-    }
-}
+
 void uart_receive_task(void *arg)
 {
     uint8_t byte;
@@ -127,7 +116,6 @@ void app_main(void)
 
     uart_init();
 
-    xTaskCreate(uart_send_task, "uart_send_task", 2048, NULL, 10, NULL);
     xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
     xTaskCreate(test_task, "test_task", 4096, NULL, 8, NULL);
 

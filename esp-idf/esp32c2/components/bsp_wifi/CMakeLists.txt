@@ -1,4 +1,5 @@
 
 idf_component_register(SRCS "bsp_wifi.c"
                        INCLUDE_DIRS "include"
-                       REQUIRES "esp_wifi" "nvs_flash" "esp_event")
+                       PRIV_INCLUDE_DIRS "../../main"
+                       REQUIRES "esp_wifi")

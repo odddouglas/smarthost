@@ -7,6 +7,7 @@ ReportData2IoT ReportData = {0};
 ReportData2IoT LastData = {0};
 
 static const char *TAG = "UART";
+
 uint8_t buffer[FRAME_LEN];
 uint8_t bufferIndex = 0;
 uint8_t frameErrorCount = 0;
