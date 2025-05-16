@@ -19,6 +19,11 @@ Page({
     closeBLEConnection() {
         bluetooth.closeBLEConnection(this);
     },
+
+    sendBLEData() {
+        const dataToSend = "LED_ON"; // 示例数据
+        bluetooth.writeBLECharacteristicValue(this, dataToSend);
+    },
     onLoad() {
 
     },

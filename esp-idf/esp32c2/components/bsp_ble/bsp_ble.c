@@ -234,11 +234,25 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             }
             else if (param->write.handle == sv1_handle_table[SV1_CH1_IDX_CHAR_VAL]) // 特征1的值
             {
+                ESP_LOGI(TAG, "接收到特征1的数据，长度 = %d", param->write.len);
+
+                // 将接收到的数据转换为字符串
+                char receivedStr[128] = {0}; // 假设最大字符串长度为 128
+                memcpy(receivedStr, param->write.value, param->write.len);
+                receivedStr[param->write.len] = '\0'; // 确保字符串以 '\0' 结尾
+                ESP_LOGI(TAG, "接收到的字符串: %s", receivedStr);
                 sv1_char1_value[0] = param->write.value[0];
                 sv1_char1_value[1] = param->write.value[1];
             }
             else if (param->write.handle == sv1_handle_table[SV1_CH2_IDX_CHAR_VAL]) // 特征2的值
             {
+                ESP_LOGI(TAG, "接收到特征2的数据，长度 = %d", param->write.len);
+
+                // 将接收到的数据转换为字符串
+                char receivedStr[128] = {0}; // 假设最大字符串长度为 128
+                memcpy(receivedStr, param->write.value, param->write.len);
+                receivedStr[param->write.len] = '\0'; // 确保字符串以 '\0' 结尾
+                ESP_LOGI(TAG, "接收到的字符串: %s", receivedStr);
                 sv1_char2_value[0] = param->write.value[0];
                 sv1_char2_value[1] = param->write.value[1];
             }

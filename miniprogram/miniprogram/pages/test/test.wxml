@@ -9,3 +9,6 @@
         <view style="font-size: 10px">UUID: {{item.deviceId}}</view>
     </view>
 </block>
+<block wx:if="{{isConnected}}">
+    <button bindtap="sendBLEData">发送数据</button>
+</block>

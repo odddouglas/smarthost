@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "main",
-    "project_version":    "2aad9f6-dirty",
+    "project_version":    "215c38d-dirty",
     "project_path":       "E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2",
     "idf_path":           "E:/ODDDOUGLAS/maxi-file/esp32/ESP-IDF/esp/v5.3.2/esp-idf",
     "build_dir":          "E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build",
