@@ -28,7 +28,7 @@ void mqtt_event_callback(void *event_handler_arg,
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         esp_mqtt_client_subscribe(mqtt_handle, MQTT_TOPIC_COMMAND, 1); // 订阅命令topic
-        xSemaphoreGive(s_wifi_connect_sem);                            // 释放信号量，使得mqtt开始连接
+        xSemaphoreGive(s_mqtt_connect_sem);                            // 释放信号量，使得mqtt开始连接
         break;
 
     case MQTT_EVENT_DISCONNECTED:

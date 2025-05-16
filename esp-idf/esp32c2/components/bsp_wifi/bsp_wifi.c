@@ -50,8 +50,8 @@ void wifi_event_callback(void *event_handler_arg,
 void wifi_start(void)
 {
     // ESP_ERROR_CHECK(nvs_flash_init());                // 初始化 NVS（非易失性存储）main中初始化了，这里就不用了
-    ESP_ERROR_CHECK(esp_netif_init());                // 初始化网络接口
-    ESP_ERROR_CHECK(esp_event_loop_create_default()); // 创建默认事件循环
+    // ESP_ERROR_CHECK(esp_netif_init());                // 初始化网络接口
+    // ESP_ERROR_CHECK(esp_event_loop_create_default()); // 创建默认事件循环
 
     esp_netif_create_default_wifi_sta(); // 创建默认的 Wi-Fi 客户端接口（STA模式）
 

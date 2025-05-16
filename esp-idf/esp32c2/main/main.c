@@ -110,23 +110,26 @@ void uart_receive_task(void *arg)
 // 主程序入口
 void app_main(void)
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
-    //s_wifi_connect_sem = xSemaphoreCreateBinary();
-    //s_mqtt_connect_sem = xSemaphoreCreateBinary(); 
+    ESP_ERROR_CHECK(nvs_flash_init());                // wifi/ble所需要的nvs初始化
+    ESP_ERROR_CHECK(esp_netif_init());                // 初始化网络接口
+    ESP_ERROR_CHECK(esp_event_loop_create_default()); // 创建默认事件循环
 
-    //wifi_start();
-    //xSemaphoreTake(s_wifi_connect_sem, portMAX_DELAY); // 等待 WiFi 连接成功
+    s_wifi_connect_sem = xSemaphoreCreateBinary();
+    s_mqtt_connect_sem = xSemaphoreCreateBinary();
 
-    //mqtt_start();
-    //xSemaphoreTake(s_mqtt_connect_sem, portMAX_DELAY); // 等待 MQTT 成功连接
+    wifi_start();
+    xSemaphoreTake(s_wifi_connect_sem, portMAX_DELAY); // 等待 WiFi 连接成功
+
+    mqtt_start();
+    xSemaphoreTake(s_mqtt_connect_sem, portMAX_DELAY); // 等待 MQTT 成功连接
 
     ble_cfg_net_init();
 
-    //uart_init();
+    uart_init();
 
-    //xTaskCreate(uart_send_task, "uart_send_task", 2048, NULL, 10, NULL);
-    //xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
-    //xTaskCreate(test_task, "test_task", 4096, NULL, 8, NULL);
+    xTaskCreate(uart_send_task, "uart_send_task", 2048, NULL, 10, NULL);
+    xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
+    xTaskCreate(test_task, "test_task", 4096, NULL, 8, NULL);
 
     return;
 }
