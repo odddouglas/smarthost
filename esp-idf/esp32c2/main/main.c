@@ -8,13 +8,19 @@
 static const char *TAG = "MAIN";
 SemaphoreHandle_t s_wifi_connect_sem = NULL;
 SemaphoreHandle_t s_mqtt_connect_sem = NULL;
-
+// 示例数据包
+uint8_t data_packet[] = {0xA5, 0xFA, 0x00, 0x81, 0xC5, 0x07, 0xEC, 0xFB};
+size_t packet_length = sizeof(data_packet);
 void test_task(void *pvParameters)
 {
     const TickType_t xDelay = pdMS_TO_TICKS(5000); // 每 5000ms 上报一次
 
     while (1)
     {
+        // 发送数据包到特征1
+        ble_set_ch1_value(data_packet, packet_length);
+        // 或者发送数据包到特征2
+        ble_set_ch2_value(data_packet, packet_length);
         // printf("0x%02X \r\n",buffer[7]);
         vTaskDelay(xDelay); // 延时
     }
@@ -47,7 +53,7 @@ void uart_receive_task(void *arg)
                 {
                     uint16_t data = buffer[4] | (buffer[5] << 8);
                     parse_data_buffer(data);
-
+                    ble_set_ch1_value(data_packet, packet_length);
                     // 上报数据
                     // mqtt_report_Fan();
                     // vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));

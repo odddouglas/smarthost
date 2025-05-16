@@ -41,7 +41,14 @@ function str2ab(str) {
     }
     return buf;
 }
-
+// 将 ArrayBuffer 转换为十六进制字符串
+function ab2hex(buffer) {
+    const hexArr = Array.prototype.map.call(
+        new Uint8Array(buffer),
+        bit => ('00' + bit.toString(16)).slice(-2)
+    );
+    return hexArr.join(' ');
+}
 
 // 初始化蓝牙模块
 function openBluetoothAdapter(page) {
@@ -235,7 +242,7 @@ function getBLEDeviceCharacteristics(page, deviceId, serviceId) {
     // 接收蓝牙特征值变化事件
     wx.onBLECharacteristicValueChange(characteristic => {
         console.log("收到原始的数据", characteristic, characteristic.value);
-        const receivedData = ab2str(characteristic.value); // 转换为字符串
+        const receivedData = ab2hex(characteristic.value); // 转换为字符串
         console.log("接收到的数据", receivedData);
         parseReceivedData(page, receivedData);
     });
@@ -278,6 +285,7 @@ function closeBluetoothAdapter() {
 // 解析通过蓝牙接收到的数据 规则是`data1:value1" UART1
 
 
-function parseReceivedData(page, data) {
+// 解析接收到的数据
+function parseReceivedData(page, receivedData) {
 
 }

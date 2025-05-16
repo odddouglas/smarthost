@@ -52,10 +52,9 @@ static uint16_t gl_gatts_if = ESP_GATT_IF_NONE;
 // 连接ID，连接成功后
 static uint16_t gl_conn_id = 0xFFFF;
 
-// char1的值
-static char sv1_char1_value[2] = {0x00, 0x16};
-// char2的值
-static char sv1_char2_value[2] = {0x00, 0x25};
+// 服务1的两个特征值
+static uint8_t sv1_char1_value[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static uint8_t sv1_char2_value[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 // att的handle表
 uint16_t sv1_handle_table[SV1_IDX_NB];
@@ -401,34 +400,60 @@ void ble_cfg_net_init(void)
 
 /**
  * 设置特征1的值
- * @param value 值
+ * @param data 数据包
+ * @param length 数据包长度
  * @return 无
  */
-void ble_set_ch1_value(uint16_t value)
+void ble_set_ch1_value(uint8_t *data, size_t length)
 {
-    sv1_char1_value[0] = value & 0xff;
-    sv1_char1_value[1] = value >> 8;
+    if (length > sizeof(sv1_char1_value))
+    {
+        ESP_LOGE(TAG, "数据包长度超过特征1的最大长度");
+        return;
+    }
+
+    // 将数据包复制到特征值存储
+    memcpy(sv1_char1_value, data, length);
+
     // 判断连接是否有效，以及客户端特征配置是否不为0
     if (gl_conn_id != 0xFFFF && (sv1_ch1_client_cfg[0] | sv1_ch1_client_cfg[1]))
     {
-        esp_ble_gatts_set_attr_value(sv1_handle_table[SV1_CH1_IDX_CHAR_VAL], 2, (const uint8_t *)&sv1_char1_value);
-        esp_ble_gatts_send_indicate(gl_gatts_if, gl_conn_id, sv1_handle_table[SV1_CH1_IDX_CHAR_VAL], 2, (uint8_t *)&sv1_char1_value, false);
+        // 设置特征值
+        esp_ble_gatts_set_attr_value(sv1_handle_table[SV1_CH1_IDX_CHAR_VAL], length, sv1_char1_value);
+
+        // 发送通知
+        esp_ble_gatts_send_indicate(gl_gatts_if, gl_conn_id, sv1_handle_table[SV1_CH1_IDX_CHAR_VAL], length, sv1_char1_value, false);
+        ESP_LOGI(TAG, "通知特征1: 数据长度 = %d, 数据内容:", length);
+        esp_log_buffer_hex(TAG, sv1_char1_value, length);
     }
 }
 
 /**
  * 设置特征2的值
- * @param value 值
+ * @param data 数据包
+ * @param length 数据包长度
  * @return 无
  */
-void ble_set_ch2_value(uint16_t value)
+void ble_set_ch2_value(uint8_t *data, size_t length)
 {
-    sv1_char2_value[0] = value & 0xff;
-    sv1_char2_value[1] = value >> 8;
+    if (length > sizeof(sv1_char2_value))
+    {
+        ESP_LOGE(TAG, "数据包长度超过特征2的最大长度");
+        return;
+    }
+
+    // 将数据包复制到特征值存储
+    memcpy(sv1_char2_value, data, length);
+
     // 判断连接是否有效，以及客户端特征配置是否不为0
     if (gl_conn_id != 0xFFFF && (sv1_ch2_client_cfg[0] | sv1_ch2_client_cfg[1]))
     {
-        esp_ble_gatts_set_attr_value(sv1_handle_table[SV1_CH2_IDX_CHAR_VAL], 2, (const uint8_t *)&sv1_char2_value);
-        esp_ble_gatts_send_indicate(gl_gatts_if, gl_conn_id, sv1_handle_table[SV1_CH2_IDX_CHAR_VAL], 2, (uint8_t *)&sv1_char2_value, false);
+        // 设置特征值
+        esp_ble_gatts_set_attr_value(sv1_handle_table[SV1_CH2_IDX_CHAR_VAL], length, sv1_char2_value);
+
+        // 发送通知
+        esp_ble_gatts_send_indicate(gl_gatts_if, gl_conn_id, sv1_handle_table[SV1_CH2_IDX_CHAR_VAL], length, sv1_char2_value, false);
+        ESP_LOGI(TAG, "通知特征1: 数据长度 = %d, 数据内容:", length);
+        esp_log_buffer_hex(TAG, sv1_char2_value, length);
     }
 }
