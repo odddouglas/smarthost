@@ -1,0 +1,55 @@
+/* 顶部按钮样式 */
+button {
+    margin: 20rpx auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
+    height: 100rpx;
+    background-color: #1aad19;
+    color: white;
+    font-size: 36rpx;
+    border-radius: 10rpx;
+    font-weight: bold;
+}
+
+/* 设备总览信息 */
+.devices_summary {
+    margin: 20rpx;
+    padding: 10rpx;
+    font-size: 26rpx;
+    color: #666;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* 每个设备条目 */
+.device_item {
+    margin: 20rpx;
+    padding: 20rpx;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 12rpx;
+    box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+}
+
+/* 点击态样式 */
+.device_item_hover {
+    background-color: #e0f7fa;
+    transform: scale(0.98);
+}
+
+/* 设备名称 */
+.device_item view:first-child {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8rpx;
+}
+
+/* 信号强度和 UUID */
+.device_item view:nth-child(2),
+.device_item view:nth-child(3) {
+    color: #888;
+    margin-top: 4rpx;
+    font-size: 22rpx;
+}

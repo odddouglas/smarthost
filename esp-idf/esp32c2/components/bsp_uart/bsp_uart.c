@@ -1,12 +1,10 @@
 #include "bsp_uart.h"
-
+static const char *TAG = "UART";
 // 0xA5 0xFA 0x00 0x81 0xC5 0x07 0xEC 0xFB
 
 // 创建接收和发送数据实例
 ReportData2IoT ReportData = {0};
 ReportData2IoT LastData = {0};
-
-static const char *TAG = "UART";
 
 uint8_t buffer[FRAME_LEN];
 uint8_t bufferIndex = 0;

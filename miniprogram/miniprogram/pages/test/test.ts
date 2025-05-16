@@ -1,66 +1,30 @@
-// pages/test/test.ts
+const bluetooth = require('../../module/bluetooth.js'); // Import the new Bluetooth module
+
 Page({
 
-  /**
-   * 页面的初始数据
-   */
-  data: {
+    data: {
+        // 蓝牙连接部分
+        devices: [], // 存储找到的蓝牙设备
+        chs: [], // 存储蓝牙特征
+        isConnected: false, // 蓝牙连接状态
+        isFound: false, // 设备搜索状态
+    },
+    // 蓝牙模块函数调用 
+    openBluetoothAdapter() {
+        bluetooth.openBluetoothAdapter(this);
+    },
+    createBLEConnection(e) {
+        bluetooth.createBLEConnection(this, e);
+    },
+    closeBLEConnection() {
+        bluetooth.closeBLEConnection(this);
+    },
+    onLoad() {
 
-  },
+    },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad() {
+    onReady() {
 
-  },
+    },
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
-  }
 })

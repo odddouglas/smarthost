@@ -3,5 +3,6 @@
   "projectname": "smarthost",
   "setting": {
     "compileHotReLoad": true
-  }
+  },
+  "libVersion": "3.8.3"
 }

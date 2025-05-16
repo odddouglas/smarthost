@@ -1,17 +1,6 @@
 #include "bsp_mqtt.h"
-
-#define MQTT_ADDRESS "mqtt://e5e7404266.st1.iotda-device.cn-north-4.myhuaweicloud.com:1883"
-#define MQTT_CLIENFID "67fe4c765367f573f7830638_esp32_0_0_2025051303"
-#define MQTT_USERNAME "67fe4c765367f573f7830638_esp32"
-#define MQTT_PASSWORD "beb57fa257b6fc3dc92d71a515d059d0788640a6f17b82c78860c18c5fde50ff"
-
-#define DEVICE_ID "67fe4c765367f573f7830638_esp32"
-#define SERVER_ID "gateway_data"
-#define MQTT_TOPIC_REPORT "$oc/devices/" DEVICE_ID "/sys/properties/report"
-#define MQTT_TOPIC_COMMAND "$oc/devices/" DEVICE_ID "/sys/commands/#"
-#define MQTT_TOPIC_COMMAND_RESPOND "$oc/devices/" DEVICE_ID "/sys/commands/response/request_id="
-
 static const char *TAG = "MQTT";
+
 static esp_mqtt_client_handle_t mqtt_handle = NULL;
 
 IssueData2MCU IssueData = {0};
