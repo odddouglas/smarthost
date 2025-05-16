@@ -28,7 +28,9 @@
         "bsp_wifi.h": "c",
         "bsp_uart.h": "c",
         "bsp_ble.h": "c",
-        "esp_gatts_api.h": "c"
+        "esp_gatts_api.h": "c",
+        "esp_bt.h": "c",
+        "esp_gap_ble_api.h": "c"
     },
     "idf.flashType": "UART",
     "idf.openOcdConfigs": [
