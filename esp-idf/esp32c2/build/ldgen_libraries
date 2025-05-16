@@ -44,6 +44,7 @@ E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-i
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/wpa_supplicant/libwpa_supplicant.a
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/esp_coex/libesp_coex.a
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/esp_wifi/libesp_wifi.a
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bt/libbt.a
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/unity/libunity.a
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/cmock/libcmock.a
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/console/libconsole.a
@@ -74,4 +75,5 @@ E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-i
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_uart/libbsp_uart.a
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_mqtt/libbsp_mqtt.a
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_wifi/libbsp_wifi.a
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_ble/libbsp_ble.a
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/main/libmain.a

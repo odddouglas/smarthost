@@ -59,13 +59,14 @@ SECTIONS
  _invalid_pc_placeholder = ABSOLUTE(.);
     /* Code marked as running out of IRAM */
     _iram_text_start = ABSOLUTE(.);
-    *(.iram1 .iram1.*)
+    *(EXCLUDE_FILE(*libble_app.a *libble_app_flash.a *libbt.a) .iram1 EXCLUDE_FILE(*libble_app.a *libble_app_flash.a *libbt.a) .iram1.*)
     *libapp_trace.a:app_trace.*(.literal .literal.* .text .text.*)
     *libapp_trace.a:app_trace_util.*(.literal .literal.* .text .text.*)
     *libapp_trace.a:port_uart.*(.literal .literal.* .text .text.*)
     *libclang_rt.builtins.a:_divsf3.*(.literal .literal.* .text .text.*)
     *libclang_rt.builtins.a:restore.*(.literal .literal.* .text .text.*)
     *libclang_rt.builtins.a:save.*(.literal .literal.* .text .text.*)
+    *libcoexist.a:(.coexiram .coexiram.*)
     *libesp_driver_gptimer.a:gptimer.*(.literal.gptimer_default_isr .text.gptimer_default_isr)
     *libesp_event.a:default_event_loop.*(.literal.esp_event_isr_post .text.esp_event_isr_post)
     *libesp_event.a:esp_event.*(.literal.esp_event_isr_post_to .text.esp_event_isr_post_to)
@@ -190,12 +191,57 @@ SECTIONS
  .dram0.bt.data :
   {
     _data_start = ABSOLUTE(.);
+    . = ALIGN(4);
+    _bt_controller_data_start = ABSOLUTE(.);
+    *libble_app.a:(.data .data.* .dram1 .dram1.* .sdata .sdata.*)
+    . = ALIGN(4);
+    _bt_controller_data_end = ABSOLUTE(.);
+    . = ALIGN(4);
+    _bt_controller_data_start = ABSOLUTE(.);
+    *libble_app_flash.a:(.data .data.* .dram1 .dram1.* .sdata .sdata.*)
+    . = ALIGN(4);
+    _bt_controller_data_end = ABSOLUTE(.);
+    . = ALIGN(4);
+    _bt_data_start = ABSOLUTE(.);
+    *libbt.a:(.data .data.* .dram1 .dram1.* .sdata .sdata.*)
+    . = ALIGN(4);
+    _bt_data_end = ABSOLUTE(.);
   } > dram0_0_seg
   .dram0.bt.bss (NOLOAD) :
   {
     
  . = ALIGN(8); 
  _bss_bt_start = ABSOLUTE(.);
+    . = ALIGN(4);
+    _bt_controller_bss_start = ABSOLUTE(.);
+    *libble_app.a:(.bss .bss.* .sbss .sbss.*)
+    . = ALIGN(4);
+    _bt_controller_bss_end = ABSOLUTE(.);
+    . = ALIGN(4);
+    _bt_controller_common_start = ABSOLUTE(.);
+    *libble_app.a:(COMMON)
+    . = ALIGN(4);
+    _bt_controller_common_end = ABSOLUTE(.);
+    . = ALIGN(4);
+    _bt_controller_bss_start = ABSOLUTE(.);
+    *libble_app_flash.a:(.bss .bss.* .sbss .sbss.*)
+    . = ALIGN(4);
+    _bt_controller_bss_end = ABSOLUTE(.);
+    . = ALIGN(4);
+    _bt_controller_common_start = ABSOLUTE(.);
+    *libble_app_flash.a:(COMMON)
+    . = ALIGN(4);
+    _bt_controller_common_end = ABSOLUTE(.);
+    . = ALIGN(4);
+    _bt_bss_start = ABSOLUTE(.);
+    *libbt.a:(.bss .bss.* .sbss .sbss.*)
+    . = ALIGN(4);
+    _bt_bss_end = ABSOLUTE(.);
+    . = ALIGN(4);
+    _bt_common_start = ABSOLUTE(.);
+    *libbt.a:(COMMON)
+    . = ALIGN(4);
+    _bt_common_end = ABSOLUTE(.);
     _bss_bt_end = ABSOLUTE(.);
   } > dram0_0_seg
   .dram0.data :
@@ -298,7 +344,7 @@ SECTIONS
     *(.bss .bss.*)
     *(.dynbss .dynsbss .gnu.linkonce.b .gnu.linkonce.b.* .gnu.linkonce.sb .gnu.linkonce.sb.* .gnu.linkonce.sb2 .gnu.linkonce.sb2.* .sbss .sbss.* .sbss2 .sbss2.* .scommon .share.mem)
     *(.ext_ram.bss .ext_ram.bss.*)
-    *(COMMON)
+    *(EXCLUDE_FILE(*libble_app.a *libble_app_flash.a *libbt.a) COMMON)
     
  . = ALIGN(8); 
  _bss_end = ABSOLUTE(.);
@@ -324,6 +370,7 @@ SECTIONS
     *(EXCLUDE_FILE(*libnet80211.a *libpp.a) .wifirxiram EXCLUDE_FILE(*libnet80211.a *libpp.a) .wifirxiram.*)
     *(.wifislpiram .wifislpiram.*)
     *(EXCLUDE_FILE(*libnet80211.a *libpp.a) .wifislprxiram EXCLUDE_FILE(*libnet80211.a *libpp.a) .wifislprxiram.*)
+    *libcoexist.a:(.coexsleepiram .coexsleepiram.*)
     *libesp_driver_gptimer.a:gptimer.*(.text .text.gptimer_del_timer .text.gptimer_destroy .text.gptimer_disable .text.gptimer_enable .text.gptimer_get_captured_count .text.gptimer_get_raw_count .text.gptimer_get_resolution .text.gptimer_new_timer .text.gptimer_register_event_callbacks .text.gptimer_register_to_group .text.gptimer_set_alarm_action .text.gptimer_set_raw_count .text.gptimer_start .text.gptimer_stop .text.gptimer_unregister_from_group)
     *libesp_event.a:default_event_loop.*(.text .text.esp_event_handler_instance_register .text.esp_event_handler_instance_unregister .text.esp_event_handler_register .text.esp_event_handler_unregister .text.esp_event_loop_create_default .text.esp_event_loop_delete_default .text.esp_event_post)
     *libesp_event.a:esp_event.*(.text .text.base_node_add_handler .text.base_node_remove_all_handler .text.base_node_remove_handler .text.esp_event_dump .text.esp_event_handler_instance_register_with .text.esp_event_handler_instance_unregister_with .text.esp_event_handler_register_with .text.esp_event_handler_register_with_internal .text.esp_event_handler_unregister_with .text.esp_event_handler_unregister_with_internal .text.esp_event_loop_create .text.esp_event_loop_delete .text.esp_event_loop_run .text.esp_event_loop_run_task .text.esp_event_post_to .text.handler_execute .text.handler_instances_add .text.handler_instances_remove .text.handler_instances_remove_all .text.loop_node_add_handler .text.loop_node_remove_all_handler .text.loop_node_remove_handler)
@@ -577,6 +624,15 @@ SECTIONS
     
  . = ALIGN(16); 
  _iram_bt_text_start = ABSOLUTE(.);
+    *libble_app.a:(.conn_iram1 .conn_iram1.*)
+    *libble_app.a:(.iram1 .iram1.*)
+    *libble_app.a:(.isr_iram1 .isr_iram1.*)
+    *libble_app_flash.a:(.conn_iram1 .conn_iram1.*)
+    *libble_app_flash.a:(.iram1 .iram1.*)
+    *libble_app_flash.a:(.isr_iram1 .isr_iram1.*)
+    *libbt.a:(.conn_iram1 .conn_iram1.*)
+    *libbt.a:(.iram1 .iram1.*)
+    *libbt.a:(.isr_iram1 .isr_iram1.*)
     
  . = ALIGN(16); 
  _iram_end = ABSOLUTE(.);

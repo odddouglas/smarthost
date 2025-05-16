@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 
+#include "bsp_ble.h"
 #include "bsp_mqtt.h"
 #include "bsp_wifi.h"
 #include "bsp_uart.h"
