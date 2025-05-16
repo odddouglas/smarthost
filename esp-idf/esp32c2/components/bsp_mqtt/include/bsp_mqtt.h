@@ -9,6 +9,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "cJSON.h"
+#include "freertos/semphr.h"
 #include "bsp_uart.h"
 #define FAN_VOLUME_LEN 10
 #define LIGHT_COLOR_LEN 10
@@ -42,6 +43,7 @@ typedef struct
 extern ReportData2IoT ReportData; // from bsp_uart.c
 extern ReportData2IoT LastData;   // from bsp_uart.c
 extern IssueData2MCU IssueData;   // from bsp_mqtt.c
+extern SemaphoreHandle_t s_wifi_connect_sem; //from main.c
 
 void mqtt_start(void);
 void mqtt_event_callback(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);

@@ -10,6 +10,7 @@
 #include "bsp_uart.h"
 static const char *TAG = "MAIN";
 SemaphoreHandle_t s_wifi_connect_sem = NULL;
+SemaphoreHandle_t s_mqtt_connect_sem = NULL;
 
 void test_task(void *pvParameters)
 {
@@ -109,16 +110,23 @@ void uart_receive_task(void *arg)
 // 主程序入口
 void app_main(void)
 {
-    s_wifi_connect_sem = xSemaphoreCreateBinary(); // 创建信号量
-    wifi_start();
-    xSemaphoreTake(s_wifi_connect_sem, portMAX_DELAY); // 阻塞等待信号量释放
-    mqtt_start();
-    ble_cfg_net_init();
-    uart_init(); // 初始化串口，创建串口任务
-    xTaskCreate(uart_send_task, "uart_send_task", 2048, NULL, 10, NULL);
-    xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
+    ESP_ERROR_CHECK(nvs_flash_init());
+    //s_wifi_connect_sem = xSemaphoreCreateBinary();
+    //s_mqtt_connect_sem = xSemaphoreCreateBinary(); 
 
-    xTaskCreate(test_task, "test_task", 4096, NULL, 8, NULL);
+    //wifi_start();
+    //xSemaphoreTake(s_wifi_connect_sem, portMAX_DELAY); // 等待 WiFi 连接成功
+
+    //mqtt_start();
+    //xSemaphoreTake(s_mqtt_connect_sem, portMAX_DELAY); // 等待 MQTT 成功连接
+
+    ble_cfg_net_init();
+
+    //uart_init();
+
+    //xTaskCreate(uart_send_task, "uart_send_task", 2048, NULL, 10, NULL);
+    //xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
+    //xTaskCreate(test_task, "test_task", 4096, NULL, 8, NULL);
 
     return;
 }

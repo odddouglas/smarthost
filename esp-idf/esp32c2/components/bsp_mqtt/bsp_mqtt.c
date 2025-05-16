@@ -28,6 +28,7 @@ void mqtt_event_callback(void *event_handler_arg,
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         esp_mqtt_client_subscribe(mqtt_handle, MQTT_TOPIC_COMMAND, 1); // 订阅命令topic
+        xSemaphoreGive(s_wifi_connect_sem);                            // 释放信号量，使得mqtt开始连接
         break;
 
     case MQTT_EVENT_DISCONNECTED:
@@ -36,6 +37,7 @@ void mqtt_event_callback(void *event_handler_arg,
 
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED ACK");
+
         break;
 
     case MQTT_EVENT_UNSUBSCRIBED:
@@ -361,7 +363,8 @@ void mqtt_report_Light(void)
 
     // 序列化 JSON 数据为字符串
     char *jsonString = cJSON_PrintUnformatted(root);
-    if (!jsonString) {
+    if (!jsonString)
+    {
         ESP_LOGE(TAG, "Failed to serialize JSON");
         cJSON_Delete(root);
         return;
