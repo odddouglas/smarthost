@@ -44,31 +44,9 @@ enum
     SV1_IDX_NB,
 };
 
-enum
-{
-    // 服务2
-    SV2_IDX_SVC,
-
-    // 特征1
-    SV2_CH1_IDX_CHAR,
-    SV2_CH1_IDX_CHAR_VAL,
-    SV2_CH1_IDX_CHAR_CFG,
-
-    // 特征2
-    SV2_CH2_IDX_CHAR,
-    SV2_CH2_IDX_CHAR_VAL,
-    SV2_CH2_IDX_CHAR_CFG,
-
-    SV2_IDX_NB,
-};
-
-static const uint16_t GATTS_SERVICE_UUID_TEST = 0x18FF; // 自定义服务1
-static const uint16_t GATTS_CHAR_UUID_CH1 = 0x2AFE;     // 特征1 UUID
-static const uint16_t GATTS_CHAR_UUID_CH2 = 0x2AFF;     // 特征2 UUID
-
-static const uint16_t GATTS_SERVICE2_UUID_TEST = 0x18F3; // 自定义服务2
-static const uint16_t GATTS_CHAR2_UUID_CH1 = 0x2AF1;     // 特征1 UUID
-static const uint16_t GATTS_CHAR2_UUID_CH2 = 0x2AF2;     // 特征2 UUID
+static const uint16_t GATTS_SERVICE_UUID_TEST = 0x180A; // 类型为设备信息
+static const uint16_t GATTS_CHAR_UUID_CH1 = 0x2A57;     // 类型为数字输出
+static const uint16_t GATTS_CHAR_UUID_CH2 = 0x2AFF;     //
 
 // 主要服务声明UUID 0x2800
 static const uint16_t primary_service_uuid = ESP_GATT_UUID_PRI_SERVICE;
@@ -93,10 +71,6 @@ static const uint8_t char_prop_read_notify = ESP_GATT_CHAR_PROP_BIT_READ | ESP_G
 static uint8_t sv1_ch1_client_cfg[2] = {0x00, 0x00};
 // 特征2客户端特征配置
 static uint8_t sv1_ch2_client_cfg[2] = {0x00, 0x00};
-// 特征1客户端特征配置
-static uint8_t sv2_ch1_client_cfg[2] = {0x00, 0x00};
-// 特征2客户端特征配置
-static uint8_t sv2_ch2_client_cfg[2] = {0x00, 0x00};
 
 // gatt的访问接口，一个Profile（APP）对应1个
 static uint16_t gl_gatts_if = ESP_GATT_IF_NONE;
@@ -108,16 +82,8 @@ static char sv1_char1_value[2] = {0x00, 0x16};
 // char2的值
 static char sv1_char2_value[2] = {0x00, 0x25};
 
-// char1的值
-static char sv2_char1_value[2] = {0x00, 0xAA};
-// char2的值
-static char sv2_char2_value[2] = {0x00, 0xEE};
-
 // att的handle表
 uint16_t sv1_handle_table[SV1_IDX_NB];
-
-// att的handle表
-uint16_t sv2_handle_table[SV2_IDX_NB];
 
 static uint8_t adv_config_done = 0;
 
@@ -164,39 +130,6 @@ static const esp_gatts_attr_db_t gatt1_db[SV1_IDX_NB] =
         // 特征描述->客户端特征配置
         [SV1_CH2_IDX_CHAR_CFG] =
             {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE, sizeof(uint16_t), sizeof(sv1_ch2_client_cfg), (uint8_t *)&sv1_ch2_client_cfg}},
-
-};
-
-// gatt描述表
-static const esp_gatts_attr_db_t gatt2_db[SV1_IDX_NB] =
-    {
-        // 服务2声明
-        [SV2_IDX_SVC] =
-            {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&primary_service_uuid, ESP_GATT_PERM_READ, sizeof(uint16_t), sizeof(GATTS_SERVICE2_UUID_TEST), (uint8_t *)&GATTS_SERVICE2_UUID_TEST}},
-
-        // 特征1
-        // 特征声明
-        [SV2_CH1_IDX_CHAR] =
-            {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ, sizeof(uint8_t), sizeof(uint8_t), (uint8_t *)&char_prop_read_notify}},
-        // 特征值
-        [SV2_CH1_IDX_CHAR_VAL] =
-            {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR2_UUID_CH1, ESP_GATT_PERM_READ, sizeof(sv2_char1_value), sizeof(sv2_char1_value), (uint8_t *)sv2_char1_value}},
-        // 特征描述->客户端特征配置
-        [SV2_CH1_IDX_CHAR_CFG] =
-            {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE, sizeof(uint16_t), sizeof(sv2_ch1_client_cfg), (uint8_t *)sv2_ch1_client_cfg}},
-
-        // 特征2
-        // 特征声明
-        [SV2_CH2_IDX_CHAR] =
-            {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ, sizeof(uint8_t), sizeof(uint8_t), (uint8_t *)&char_prop_read_write_notify}},
-
-        // 特征值
-        [SV2_CH2_IDX_CHAR_VAL] =
-            {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR2_UUID_CH2, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE, sizeof(sv2_char2_value), sizeof(sv2_char2_value), (uint8_t *)sv2_char2_value}},
-
-        // 特征描述->客户端特征配置
-        [SV2_CH2_IDX_CHAR_CFG] =
-            {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE, sizeof(uint16_t), sizeof(sv2_ch2_client_cfg), (uint8_t *)&sv2_ch2_client_cfg}},
 
 };
 
@@ -282,12 +215,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
         {
             ESP_LOGE(TAG, "create attr1 table failed, error code = %x", create_attr_ret);
         }
-        // 注册attr表2
-        create_attr_ret = esp_ble_gatts_create_attr_tab(gatt2_db, gatts_if, SV2_IDX_NB, SVC_IND_ID2);
-        if (create_attr_ret)
-        {
-            ESP_LOGE(TAG, "create attr2 table failed, error code = %x", create_attr_ret);
-        }
+
         if (param->reg.status == ESP_GATT_OK)
         {
             gl_gatts_if = gatts_if;
@@ -301,15 +229,15 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
         esp_gatt_rsp_t rsp;
         memset(&rsp, 0, sizeof(esp_gatt_rsp_t));
         rsp.attr_value.handle = param->read.handle;
-        if (sv1_handle_table[SV1_CH1_IDX_CHAR_VAL] == param->read.handle)
+        if (sv1_handle_table[SV1_CH1_IDX_CHAR_VAL] == param->read.handle) // 读取特征值1
+        {
+            rsp.attr_value.len = sizeof(sv1_char1_value);
+            memcpy(rsp.attr_value.value, sv1_char1_value, sizeof(sv1_char1_value));
+        }
+        if (sv1_handle_table[SV1_CH2_IDX_CHAR_VAL] == param->read.handle) // 读取特征值2
         {
             rsp.attr_value.len = sizeof(sv1_char2_value);
             memcpy(rsp.attr_value.value, sv1_char2_value, sizeof(sv1_char2_value));
-        }
-        if (sv1_handle_table[SV1_CH2_IDX_CHAR_VAL] == param->read.handle)
-        {
-            rsp.attr_value.len = sizeof(sv2_char2_value);
-            memcpy(rsp.attr_value.value, sv2_char2_value, sizeof(sv2_char2_value));
         }
         esp_ble_gatts_send_response(gatts_if, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, &rsp);
         break;
@@ -332,10 +260,14 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             }
             else if (param->write.handle == sv1_handle_table[SV1_CH1_IDX_CHAR_VAL]) // 特征1的值
             {
+                sv1_char1_value[0] = param->write.value[0];
+                sv1_char1_value[1] = param->write.value[1];
+            }
+            else if (param->write.handle == sv1_handle_table[SV1_CH2_IDX_CHAR_VAL]) // 特征2的值
+            {
                 sv1_char2_value[0] = param->write.value[0];
                 sv1_char2_value[1] = param->write.value[1];
             }
-
             if (param->write.need_rsp)
             {
                 esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
@@ -396,21 +328,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 esp_ble_gatts_start_service(sv1_handle_table[SV1_IDX_SVC]);
             }
         }
-        else if (param->add_attr_tab.svc_inst_id == SVC_IND_ID2)
-        {
-            if (param->add_attr_tab.num_handle != SV2_IDX_NB)
-            {
-                ESP_LOGE(TAG, "create attribute table abnormally, num_handle (%d) \
-                            doesn't equal to NETCFG_IDX_NB(%d)",
-                         param->add_attr_tab.num_handle, SV2_IDX_NB);
-            }
-            else
-            {
-                ESP_LOGI(TAG, "create attribute table successfully, the number handle = %d\n", param->add_attr_tab.num_handle);
-                memcpy(sv2_handle_table, param->add_attr_tab.handles, sizeof(sv2_handle_table));
-                esp_ble_gatts_start_service(sv2_handle_table[SV2_IDX_SVC]);
-            }
-        }
+
         break;
     case ESP_GATTS_STOP_EVT:
     case ESP_GATTS_OPEN_EVT:
@@ -514,13 +432,13 @@ esp_err_t ble_cfg_net_init(void)
  */
 void ble_set_ch1_value(uint16_t value)
 {
-    sv1_char2_value[0] = value & 0xff;
-    sv1_char2_value[1] = value >> 8;
+    sv1_char1_value[0] = value & 0xff;
+    sv1_char1_value[1] = value >> 8;
     // 判断连接是否有效，以及客户端特征配置是否不为0
     if (gl_conn_id != 0xFFFF && (sv1_ch1_client_cfg[0] | sv1_ch1_client_cfg[1]))
     {
-        esp_ble_gatts_set_attr_value(sv1_handle_table[SV1_CH1_IDX_CHAR_VAL], 2, (const uint8_t *)&sv1_char2_value);
-        esp_ble_gatts_send_indicate(gl_gatts_if, gl_conn_id, sv1_handle_table[SV1_CH1_IDX_CHAR_VAL], 2, (uint8_t *)&sv1_char2_value, false);
+        esp_ble_gatts_set_attr_value(sv1_handle_table[SV1_CH1_IDX_CHAR_VAL], 2, (const uint8_t *)&sv1_char1_value);
+        esp_ble_gatts_send_indicate(gl_gatts_if, gl_conn_id, sv1_handle_table[SV1_CH1_IDX_CHAR_VAL], 2, (uint8_t *)&sv1_char1_value, false);
     }
 }
 
@@ -531,12 +449,12 @@ void ble_set_ch1_value(uint16_t value)
  */
 void ble_set_ch2_value(uint16_t value)
 {
-    sv2_char2_value[0] = value & 0xff;
-    sv2_char2_value[1] = value >> 8;
+    sv1_char2_value[0] = value & 0xff;
+    sv1_char2_value[1] = value >> 8;
     // 判断连接是否有效，以及客户端特征配置是否不为0
     if (gl_conn_id != 0xFFFF && (sv1_ch2_client_cfg[0] | sv1_ch2_client_cfg[1]))
     {
-        esp_ble_gatts_set_attr_value(sv1_handle_table[SV1_CH2_IDX_CHAR_VAL], 2, (const uint8_t *)&sv2_char2_value);
-        esp_ble_gatts_send_indicate(gl_gatts_if, gl_conn_id, sv1_handle_table[SV1_CH2_IDX_CHAR_VAL], 2, (uint8_t *)&sv2_char2_value, false);
+        esp_ble_gatts_set_attr_value(sv1_handle_table[SV1_CH2_IDX_CHAR_VAL], 2, (const uint8_t *)&sv1_char2_value);
+        esp_ble_gatts_send_indicate(gl_gatts_if, gl_conn_id, sv1_handle_table[SV1_CH2_IDX_CHAR_VAL], 2, (uint8_t *)&sv1_char2_value, false);
     }
 }

@@ -113,7 +113,7 @@ void app_main(void)
     wifi_start();
     xSemaphoreTake(s_wifi_connect_sem, portMAX_DELAY); // 阻塞等待信号量释放
     mqtt_start();
-
+    ble_cfg_net_init();
     uart_init(); // 初始化串口，创建串口任务
     xTaskCreate(uart_send_task, "uart_send_task", 2048, NULL, 10, NULL);
     xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
