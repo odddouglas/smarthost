@@ -75,10 +75,21 @@
     #define BUF_SIZE 1024
     #define FRAME_LEN 8
     #define MAX_FRAME_ERRORS 5
+  
   ```
 
+- HW_TIMER：进行简单的定时全属性上报（统一），目前mqtt的上报是使用差量上传（语音芯片响应之后，将发生变化的属性进行上报），目前设置的是120s上传一次，避免影子数据遗留问题。
+
+  ```c
+      #define TIMER_GROUP TIMER_GROUP_0
+      #define TIMER_IDX TIMER_0
+      #define TIMER_INTERVAL_SEC 120 // 120 秒周期
+  ```
+
+  
 
 #### esp-idf框架
+
 ```bash
 esp32c2/
 ├── .devcontainer/
