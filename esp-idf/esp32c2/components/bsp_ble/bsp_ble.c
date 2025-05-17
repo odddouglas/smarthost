@@ -150,13 +150,7 @@ static esp_ble_adv_data_t scan_rsp_data = {
     .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
 };
 
-/**
- * gatt事件回调函数
- * @param event 事件ID
- * @param gatts_if gatt接口，一个profile对应一个
- * @param param 事件参数
- * @return 无
- */
+// gatt事件回调函数
 static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param)
 {
     switch (event)
@@ -286,7 +280,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
         conn_params.max_int = 0x20; // 最大连接间隔 = 0x20*1.25ms = 40ms
         conn_params.min_int = 0x10; // 最小连接间隔 = 0x10*1.25ms = 20ms
         conn_params.timeout = 400;  // 监控超时 = 400*10ms = 4000ms
-        // start sent the update connection parameters to the peer device.
+
         esp_ble_gap_update_conn_params(&conn_params);
         gl_conn_id = param->connect.conn_id;
         break;
@@ -331,12 +325,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
     }
 }
 
-/**
- * gap事件回调函数
- * @param event 事件ID
- * @param param 事件参数
- * @return 无
- */
+//gap事件回调函数
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
     switch (event)
@@ -390,12 +379,8 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     }
 }
 
-/**
- * 初始化并启动蓝牙BLE
- * @param 无
- * @return 是否成功
- */
-void ble_cfg_net_init(void)
+//初始化
+void ble_start(void)
 {
     // ESP_ERROR_CHECK(nvs_flash_init()); //main中初始化
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
@@ -412,12 +397,6 @@ void ble_cfg_net_init(void)
     ESP_ERROR_CHECK(esp_ble_gatt_set_local_mtu(500));
 }
 
-/**
- * 设置特征1的值
- * @param data 数据包
- * @param length 数据包长度
- * @return 无
- */
 void ble_set_ch1_value(uint8_t *data, size_t length)
 {
     if (length > sizeof(sv1_char1_value))
@@ -442,12 +421,6 @@ void ble_set_ch1_value(uint8_t *data, size_t length)
     }
 }
 
-/**
- * 设置特征2的值
- * @param data 数据包
- * @param length 数据包长度
- * @return 无
- */
 void ble_set_ch2_value(uint8_t *data, size_t length)
 {
     if (length > sizeof(sv1_char2_value))

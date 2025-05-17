@@ -9,7 +9,7 @@
 #define FAN_VOLUME_LEN 10
 #define LIGHT_COLOR_LEN 10
 
-#define MQTT_REPORT_INTERVAL_MS 20
+#define MQTT_REPORT_INTERVAL_MS 1000
 #define MQTT_ADDRESS "mqtt://e5e7404266.st1.iotda-device.cn-north-4.myhuaweicloud.com:1883"
 #define MQTT_CLIENFID "67fe4c765367f573f7830638_esp32_0_0_2025051303"
 #define MQTT_USERNAME "67fe4c765367f573f7830638_esp32"

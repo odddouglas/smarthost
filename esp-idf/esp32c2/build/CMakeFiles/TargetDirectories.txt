@@ -825,6 +825,13 @@ E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-i
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_ble/CMakeFiles/install.dir
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_ble/CMakeFiles/install/local.dir
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_ble/CMakeFiles/install/strip.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_hw_timer/CMakeFiles/__idf_bsp_hw_timer.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_hw_timer/CMakeFiles/edit_cache.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_hw_timer/CMakeFiles/rebuild_cache.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_hw_timer/CMakeFiles/list_install_components.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_hw_timer/CMakeFiles/install.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_hw_timer/CMakeFiles/install/local.dir
+E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/bsp_hw_timer/CMakeFiles/install/strip.dir
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/main/CMakeFiles/__idf_main.dir
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/main/CMakeFiles/edit_cache.dir
 E:/ODDDOUGLAS/mini-project/project/smarthost_gateway/esp-idf/esp32c2/build/esp-idf/main/CMakeFiles/rebuild_cache.dir

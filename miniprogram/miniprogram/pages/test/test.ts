@@ -1,4 +1,4 @@
-const bluetooth = require('../../module/bluetooth.js'); // Import the new Bluetooth module
+const bluetooth = require('../../module/bluetooth.js'); 
 
 Page({
 

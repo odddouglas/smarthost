@@ -14,7 +14,7 @@
 #define SVC_IND_ID1 0
 #define SVC_IND_ID2 1
 
-void ble_cfg_net_init(void);
+void ble_start(void);
 void ble_set_ch1_value(uint8_t *data, size_t length);
 void ble_set_ch2_value(uint8_t *data, size_t length);
 

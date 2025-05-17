@@ -4,6 +4,7 @@
 #include "bsp_mqtt.h"
 #include "bsp_wifi.h"
 #include "bsp_uart.h"
+#include "bsp_hw_timer.h"
 
 static const char *TAG = "MAIN";
 SemaphoreHandle_t s_wifi_connect_sem = NULL;
@@ -85,6 +86,29 @@ void uart_receive_task(void *arg)
         }
     }
 }
+void hw_timer_report_task(void *param)
+{
+    while (1)
+    {
+        if (report_flag)
+        {
+            report_flag = false;
+
+            mqtt_report_Fan();
+            vTaskDelay(pdMS_TO_TICKS(1000));
+
+            mqtt_report_BaseData();
+            vTaskDelay(pdMS_TO_TICKS(1000));
+
+            mqtt_report_Status();
+            vTaskDelay(pdMS_TO_TICKS(1000));
+
+            mqtt_report_Light();
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+        vTaskDelay(pdMS_TO_TICKS(100)); // 避免 CPU 占满
+    }
+}
 // 主程序入口
 void app_main(void)
 {
@@ -101,10 +125,11 @@ void app_main(void)
     mqtt_start();
     xSemaphoreTake(s_mqtt_connect_sem, portMAX_DELAY); // 等待 MQTT 成功连接
 
-    ble_cfg_net_init();
-
+    ble_start();
     uart_init();
+    hw_timer_init();
 
     xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
+    xTaskCreate(hw_timer_report_task, "hw_timer_report_task", 4096, NULL, 8, NULL);
     return;
 }
