@@ -38,15 +38,7 @@ void uart_receive_task(void *arg)
                     uint16_t data = buffer[4] | (buffer[5] << 8);
                     parse_data_buffer(data);
                     ble_set_ch2_value(buffer, FRAME_LEN); // 特征值2用于发送给小程序端，格式为 a5 fa 00 81 c5 07 ec fb
-                    // 上报全属性数据
-                    // mqtt_report_Fan();
-                    // vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
-                    // mqtt_report_BaseData();
-                    // vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
-                    // mqtt_report_Status();
-                    // vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
-                    // mqtt_report_Light();
-                    // vTaskDelay(pdMS_TO_TICKS(MQTT_REPORT_INTERVAL_MS));
+
                     if (isFanDataChanged())
                     {
                         mqtt_report_Fan();
@@ -86,8 +78,11 @@ void uart_receive_task(void *arg)
         }
     }
 }
+
+// 每隔10s上报一次
 void hw_timer_report_task(void *param)
 {
+    ESP_LOGI(TAG, "hw_timer_report_task started");
     while (1)
     {
         if (report_flag)
@@ -130,6 +125,6 @@ void app_main(void)
     hw_timer_init();
 
     xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
-    xTaskCreate(hw_timer_report_task, "hw_timer_report_task", 4096, NULL, 8, NULL);
+    xTaskCreate(hw_timer_report_task, "hw_timer_report_task", 4096, NULL, 10, NULL);
     return;
 }
