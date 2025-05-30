@@ -3,6 +3,10 @@
 
 #include "main.h"
 #include "esp_wifi.h"
+#include "esp_netif.h"
+#include "wifi_provisioning/manager.h"
+#include "wifi_provisioning/scheme_softap.h"
+#include "protocomm_security.h"
 
 #define WIFI_SSID "odddouglas"     // Wi-Fi SSID
 #define WIFI_PASSWORD "odddouglas" // Wi-Fi 密码

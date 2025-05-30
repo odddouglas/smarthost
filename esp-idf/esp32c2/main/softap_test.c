@@ -1,55 +1,80 @@
 #include <string.h>
 #include "nvs_flash.h"
-#include "esp_wifi.h"
+#include "bsp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
-
 #include "wifi_provisioning/manager.h"
 #include "wifi_provisioning/scheme_softap.h"
 #include "protocomm_security.h"
 
-static const char *TAG = "wifi_prov_softap";
+static const char *TAG = "SOFT_AP";
 
 // 配网事件处理器（签名修改为 int32_t）
-static void provision_event_handler(void *arg, esp_event_base_t event_base,
-                                    int32_t event_id, void *event_data)
+void wifi_event_callback(void *arg, esp_event_base_t event_base,
+                         int32_t event_id, void *event_data)
 {
     if (event_base == WIFI_PROV_EVENT)
     {
         switch (event_id)
         {
         case WIFI_PROV_START:
-            ESP_LOGI(TAG, "Provisioning started");
+            ESP_LOGI(TAG, "PROVISIONING STARTED");
             break;
-
         case WIFI_PROV_CRED_RECV:
         {
             wifi_sta_config_t *wifi_sta_cfg = (wifi_sta_config_t *)event_data;
-            ESP_LOGI(TAG, "Received Wi-Fi credentials:\n\tSSID: %s\n\tPassword: %s",
+            ESP_LOGI(TAG, "RECEIVED WI-FI CREDENTIALS:\n\tSSID: %s\n\tPASSWORD: %s",
                      (const char *)wifi_sta_cfg->ssid,
                      (const char *)wifi_sta_cfg->password);
             break;
         }
-
         case WIFI_PROV_CRED_FAIL:
-            ESP_LOGE(TAG, "Provisioning failed!");
+            ESP_LOGE(TAG, "PROVISIONING FAILED!");
             break;
-
         case WIFI_PROV_CRED_SUCCESS:
-            ESP_LOGI(TAG, "Provisioning successful!");
+            ESP_LOGI(TAG, "PROVISIONING SUCCESSFUL!");
+            break;
+        case WIFI_PROV_END:
+            ESP_LOGI(TAG, "PROVISIONING COMPLETE, DEINITIALIZING...");
+            wifi_prov_mgr_deinit();
+            break;
+        }
+    }
+    // if (event_base == WIFI_EVENT)
+    // {
+    //     switch (event_id)
+    //     {
+    //     case WIFI_EVENT_STA_START:
+    //         ESP_LOGI(TAG, "WIFI_EVENT_STA_START");
+    //         esp_wifi_connect();
+    //         break;
 
-            // 获取并连接 Wi-Fi
-            wifi_config_t wifi_config;
-            ESP_ERROR_CHECK(esp_wifi_get_config(WIFI_IF_STA, &wifi_config));
-            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-            ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
-            ESP_ERROR_CHECK(esp_wifi_connect());
+    //     case WIFI_EVENT_STA_CONNECTED:
+    //         ESP_LOGI(TAG, "WIFI_EVENT_STA_CONNECTED");
+    //         break;
+
+    //     case WIFI_EVENT_STA_DISCONNECTED:
+    //         ESP_LOGW(TAG, "WIFI_EVENT_STA_DISCONNECTED");
+    //         esp_wifi_connect();
+    //         break;
+
+    //     default:
+    //         ESP_LOGI(TAG, "WIFI_DEFAULT:");
+    //         break;
+    //     }
+    // }
+    else if (event_base == IP_EVENT)
+    {
+        switch (event_id)
+        {
+        case IP_EVENT_STA_GOT_IP:
+            ESP_LOGI(TAG, "IP_EVENT_STA_GOT_IP");
+            // xSemaphoreGive(s_wifi_connect_sem); // 释放信号量，使得mqtt开始连接
             break;
 
-        case WIFI_PROV_END:
-            ESP_LOGI(TAG, "Provisioning complete, deinitializing...");
-            wifi_prov_mgr_deinit();
+        default:
+            ESP_LOGI(TAG, "IP_DEFAULT:");
             break;
         }
     }
@@ -73,7 +98,9 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_wifi_start());
 
     // 注册事件处理器（使用修正签名）
-    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_PROV_EVENT, ESP_EVENT_ANY_ID, &provision_event_handler, NULL));
+    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_PROV_EVENT, ESP_EVENT_ANY_ID, wifi_event_callback, NULL)); // 注册 PROV 配网事件处理函数
+    //ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_callback, NULL));      // 注册 Wi-Fi 事件处理函数
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, wifi_event_callback, NULL));     // 注册 IP 获取事件处理函数
 
     // 初始化配网管理器
     bool provisioned = false;
