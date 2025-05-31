@@ -115,7 +115,7 @@ void app_main(void)
     s_wifi_connect_sem = xSemaphoreCreateBinary();
     s_mqtt_connect_sem = xSemaphoreCreateBinary();
 
-    wifi_start();
+    wifi_start_provision();
     xSemaphoreTake(s_wifi_connect_sem, portMAX_DELAY); // 等待 WiFi 连接成功
 
     mqtt_start();
