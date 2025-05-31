@@ -53,6 +53,7 @@ void wifi_event_callback(void *event_handler_arg,
             break;
         case WIFI_PROV_END:
             ESP_LOGI(TAG, "PROVISIONING COMPLETE, DEINITIALIZING...");
+            xSemaphoreGive(s_wifi_connect_sem); // 释放信号量，使得mqtt开始连接
             wifi_prov_mgr_deinit();
             break;
         }
@@ -63,7 +64,7 @@ void wifi_event_callback(void *event_handler_arg,
         {
         case IP_EVENT_STA_GOT_IP:
             ESP_LOGI(TAG, "IP_EVENT_STA_GOT_IP");
-            xSemaphoreGive(s_wifi_connect_sem); // 释放信号量，使得mqtt开始连接
+
             break;
 
         default:

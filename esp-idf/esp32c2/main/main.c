@@ -128,7 +128,7 @@ void app_main(void)
     BaseType_t ret1 = xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
     ESP_LOGI(TAG, "Create uart_receive_task: %s", ret1 == pdPASS ? "SUCCESS" : "FAILED");
 
-    BaseType_t ret2 = xTaskCreate(hw_timer_report_task, "hw_timer_report_task", 2048, NULL, 10, NULL);
+    BaseType_t ret2 = xTaskCreate(hw_timer_report_task, "hw_timer_report_task", 1024, NULL, 10, NULL);
     ESP_LOGI(TAG, "Create hw_timer_report_task: %s", ret2 == pdPASS ? "SUCCESS" : "FAILED");
 
     return;
