@@ -89,17 +89,17 @@ void hw_timer_report_task(void *param)
         {
             report_flag = false;
 
-            mqtt_report_Fan();
-            vTaskDelay(pdMS_TO_TICKS(1000));
+            // mqtt_report_Fan();
+            // vTaskDelay(pdMS_TO_TICKS(1000));
 
-            mqtt_report_BaseData();
-            vTaskDelay(pdMS_TO_TICKS(1000));
+            // mqtt_report_BaseData();
+            // vTaskDelay(pdMS_TO_TICKS(1000));
 
             mqtt_report_Status();
             vTaskDelay(pdMS_TO_TICKS(1000));
 
-            mqtt_report_Light();
-            vTaskDelay(pdMS_TO_TICKS(1000));
+            // mqtt_report_Light();
+            // vTaskDelay(pdMS_TO_TICKS(1000));
         }
         vTaskDelay(pdMS_TO_TICKS(100)); // 避免 CPU 占满
     }

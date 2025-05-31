@@ -1,5 +1,6 @@
 #include "bsp_wifi.h"
 static const char *TAG = "WIFI";
+bool is_provisioning = false; // 标志是否处于配网流程中
 
 // Wi-Fi 事件处理函数
 void wifi_event_callback(void *event_handler_arg,
@@ -64,7 +65,11 @@ void wifi_event_callback(void *event_handler_arg,
         {
         case IP_EVENT_STA_GOT_IP:
             ESP_LOGI(TAG, "IP_EVENT_STA_GOT_IP");
-
+            if (!is_provisioning)
+            {
+                // 只有不是配网流程中，才释放信号量
+                xSemaphoreGive(s_wifi_connect_sem);
+            }
             break;
 
         default:
@@ -137,6 +142,7 @@ void wifi_start_provision(void)
 
     if (!provisioned)
     {
+        is_provisioning = true;
         ESP_LOGI(TAG, "Starting provisioning...");
 
         const char *service_name = "ESP32_PROV";
@@ -149,6 +155,7 @@ void wifi_start_provision(void)
     }
     else
     {
+        is_provisioning = false;
         ESP_LOGI(TAG, "Device already provisioned, connecting to Wi-Fi...");
 
         wifi_config_t wifi_config;
