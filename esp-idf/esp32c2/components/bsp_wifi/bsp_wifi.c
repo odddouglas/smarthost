@@ -136,7 +136,7 @@ void wifi_start_provision(void)
     ESP_ERROR_CHECK(wifi_prov_mgr_init(config));
 
     // 强制清除上次配网信息（可选，开发测试阶段建议保留）
-    wifi_prov_mgr_reset_provisioning();
+    //wifi_prov_mgr_reset_provisioning();
 
     ESP_ERROR_CHECK(wifi_prov_mgr_is_provisioned(&provisioned));
 
