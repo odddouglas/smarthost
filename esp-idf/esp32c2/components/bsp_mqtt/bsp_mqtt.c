@@ -41,15 +41,15 @@ void mqtt_event_callback(void *event_handler_arg,
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
         // printf("TOPIC=%.*s\r\n", data->topic_len, data->topic);
         log_memory_usage("MQTT_FLASH");
-        printf("DATA=%.*s\r\n", data->data_len, data->data);
-        // mqtt_cmd_handler((char *)data->topic, data->data, data->data_len); // 处理命令
-        mqtt_respond((char *)data->topic, "success");
+        printf("MQTT: DATA=%.*s\r\n", data->data_len, data->data);
+        mqtt_cmd_handler((char *)data->topic, data->data, data->data_len); // 处理命令
+        //mqtt_respond((char *)data->topic, "success");
         break;
 
     case MQTT_EVENT_ERROR:
         ESP_LOGE(TAG, "MQTT_EVENT_ERROR");
         connectErrorCount++;
-        printf("frameErrorCount:%d\r\n", connectErrorCount);
+        printf("MQTT: connectErrorCount:%d\r\n", connectErrorCount);
         if (connectErrorCount >= MAX_CONNECT_ERRORS) // 软件看门狗复位
             esp_restart();
         break;
