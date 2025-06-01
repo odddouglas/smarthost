@@ -2,6 +2,7 @@
 #define _BSP_BLE_H_
 
 #include "main.h"
+#include "bsp_uart.h"
 #include "esp_bt.h"
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"

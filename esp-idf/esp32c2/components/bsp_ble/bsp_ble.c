@@ -216,6 +216,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             // the data length of gattc write  must be less than GATTS_DEMO_CHAR_VAL_LEN_MAX.
             ESP_LOGI(TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
             esp_log_buffer_hex(TAG, param->write.value, param->write.len);
+
             if (param->write.handle == sv1_handle_table[SV1_CH1_IDX_CHAR_CFG]) // 特征1客户端特征配置
             {
                 sv1_ch1_client_cfg[0] = param->write.value[0];
@@ -230,18 +231,17 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             {
                 ESP_LOGI(TAG, "接收到特征1的数据，长度 = %d", param->write.len);
 
-                // 打印接收到的原始数据（逐字节以十六进制格式输出）
-                ESP_LOGI(TAG, "接收到的数据内容:");
-                for (int i = 0; i < param->write.len; i++)
-                {
-                    ESP_LOGI(TAG, "0x%02X ", param->write.value[i]);
-                }
                 // 将接收到的数据存储到 sv1_char1_value 中
                 memset(sv1_char1_value, 0, sizeof(sv1_char1_value)); // 清空存储缓冲区
                 memcpy(sv1_char1_value, param->write.value, param->write.len > sizeof(sv1_char1_value) ? sizeof(sv1_char1_value) : param->write.len);
 
-                // 打印存储的数据
-                ESP_LOGI(TAG, "数据已存储到 sv1_char1_value");
+                // 提取 cmd_id（假设 cmd_id 存储在字节 4 和字节 5 中）
+                uint16_t cmd_id = sv1_char1_value[4] | (sv1_char1_value[5] << 8);
+
+                // 调用 send_status_packet 直接转发
+                send_status_packet(cmd_id);
+
+                ESP_LOGI(TAG, "转发数据包，cmd_id=0x%04X", cmd_id);
             }
             else if (param->write.handle == sv1_handle_table[SV1_CH2_IDX_CHAR_VAL]) // 特征2的值
             {
@@ -253,7 +253,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 receivedStr[param->write.len] = '\0'; // 确保字符串以 '\0' 结尾
                 ESP_LOGI(TAG, "接收到的字符串: %s", receivedStr);
                 sv1_char2_value[0] = param->write.value[0];
-                sv1_char2_value[1] = param->write.value[1];
+                sv1_char2_value[1] = param->write.value[1]; // 这里取决于发来的数据包格式大小，有八个就存储到param->write.value[7]
             }
             if (param->write.need_rsp)
             {
