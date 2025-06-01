@@ -11,7 +11,7 @@
 #define UART_RX_PIN 3
 #define BUF_SIZE 1024
 #define FRAME_LEN 8
-#define MAX_FRAME_ERRORS 3
+#define MAX_FRAME_ERRORS 1
 
 extern uint8_t buffer[]; // from bsp_uart.c
 extern uint8_t bufferIndex;

@@ -21,7 +21,7 @@ Page({
     },
 
     sendBLEData() {
-        const dataToSend = "a5 fa 00 03 16 00 b8 fb"; // 示例数据
+        const dataToSend = "a5fa00031200b8fb"; // 示例数据
         bluetooth.writeBLECharacteristicValue(this, dataToSend);
     },
     onLoad() {

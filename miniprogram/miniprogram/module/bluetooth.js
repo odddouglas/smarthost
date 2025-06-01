@@ -49,7 +49,16 @@ function ab2hex(buffer) {
     );
     return hexArr.join(' ');
 }
-
+// 将十六进制字符串转换为 ArrayBuffer
+function hex2ab(hexStr) {
+    hexStr = hexStr.replace(/\s+/g, ''); // 去掉可能的空格
+    const buffer = new ArrayBuffer(hexStr.length / 2);
+    const dataView = new Uint8Array(buffer);
+    for (let i = 0; i < hexStr.length; i += 2) {
+        dataView[i / 2] = parseInt(hexStr.substr(i, 2), 16);
+    }
+    return buffer;
+}
 // 初始化蓝牙模块
 function openBluetoothAdapter(page) {
     closeBluetoothAdapter();
@@ -250,7 +259,7 @@ function getBLEDeviceCharacteristics(page, deviceId, serviceId) {
 
 // 发送数据到蓝牙设备
 function writeBLECharacteristicValue(page, jsonStr) {
-    let arrayBufferValue = str2ab(jsonStr); // 转换为 ArrayBuffer
+    let arrayBufferValue = hex2ab(jsonStr); // 转换为 ArrayBuffer
     console.log("发送数据给蓝牙", "原始字符串", jsonStr, "转换arrayBuffer", arrayBufferValue);
 
     wx.writeBLECharacteristicValue({
