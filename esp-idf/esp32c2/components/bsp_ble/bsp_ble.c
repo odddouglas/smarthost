@@ -53,8 +53,8 @@ static uint16_t gl_gatts_if = ESP_GATT_IF_NONE;
 static uint16_t gl_conn_id = 0xFFFF;
 
 // 服务1的两个特征值
-static uint8_t sv1_char1_value[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-static uint8_t sv1_char2_value[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static uint8_t sv1_char1_value[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; // 用于接收
+static uint8_t sv1_char2_value[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; // 用于发送
 
 // att的handle表
 uint16_t sv1_handle_table[SV1_IDX_NB];
@@ -325,7 +325,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
     }
 }
 
-//gap事件回调函数
+// gap事件回调函数
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
     switch (event)
@@ -379,7 +379,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     }
 }
 
-//初始化
+// 初始化
 void ble_start(void)
 {
     // ESP_ERROR_CHECK(nvs_flash_init()); //main中初始化
@@ -437,7 +437,7 @@ void ble_set_ch2_value(uint8_t *data, size_t length)
     {
         // 设置特征值
         esp_ble_gatts_set_attr_value(sv1_handle_table[SV1_CH2_IDX_CHAR_VAL], length, sv1_char2_value);
-
+        log_memory_usage("BLE_FLASH");
         // 发送通知
         esp_ble_gatts_send_indicate(gl_gatts_if, gl_conn_id, sv1_handle_table[SV1_CH2_IDX_CHAR_VAL], length, sv1_char2_value, false);
         ESP_LOGI(TAG, "通知特征1: 数据长度 = %d, 数据内容:", length);

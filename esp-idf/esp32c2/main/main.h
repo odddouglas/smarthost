@@ -16,5 +16,6 @@
 #include "esp_err.h"
 #include "esp_mac.h"
 
+void log_memory_usage(const char *task_name);
 
 #endif

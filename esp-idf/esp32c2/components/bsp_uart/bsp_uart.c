@@ -46,6 +46,7 @@ bool verify_serial_frame(uint8_t *buf)
     {
         ESP_LOGW(TAG, "Frame head/tail error");
         frameErrorCount++;
+        printf("frameErrorCount:%d\r\n", frameErrorCount);
         return false;
     }
 
@@ -56,6 +57,7 @@ bool verify_serial_frame(uint8_t *buf)
     {
         ESP_LOGW(TAG, "Checksum failed: expected 0x%02X, got 0x%02X", calcSum, checksum);
         frameErrorCount++;
+        printf("frameErrorCount:%d\r\n", frameErrorCount);
         return false;
     }
 

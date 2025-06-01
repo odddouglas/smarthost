@@ -6,6 +6,7 @@
 #include "bsp_uart.h"
 #include "cJSON.h"
 
+#define MAX_CONNECT_ERRORS 3
 #define FAN_VOLUME_LEN 10
 #define LIGHT_COLOR_LEN 10
 
@@ -46,9 +47,11 @@ typedef struct
     double humidity;                    // 湿度
 } IssueData2MCU;
 
-extern ReportData2IoT ReportData;            // from bsp_uart.c
-extern ReportData2IoT LastData;              // from bsp_uart.c
-extern IssueData2MCU IssueData;              // from bsp_mqtt.c
+extern ReportData2IoT ReportData; // from bsp_uart.c
+extern ReportData2IoT LastData;   // from bsp_uart.c
+extern IssueData2MCU IssueData;   // from bsp_mqtt.c
+extern uint8_t connectErrorCount; // from bso_mqtt.c
+
 extern SemaphoreHandle_t s_mqtt_connect_sem; // from main.c
 
 void mqtt_start(void);

@@ -6,7 +6,7 @@
 
 #define TIMER_GROUP TIMER_GROUP_0
 #define TIMER_IDX TIMER_0
-#define TIMER_INTERVAL_SEC 120 // 120 秒周期
+#define TIMER_INTERVAL_SEC 10 // 120 秒周期
 
 extern volatile bool report_flag;
 

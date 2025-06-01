@@ -12,7 +12,7 @@ SemaphoreHandle_t s_mqtt_connect_sem = NULL;
 
 void log_memory_usage(const char *task_name)
 {
-    ESP_LOGI(TAG, "[%s] Free heap size: %u bytes, Minimum free heap size: %u bytes",
+    ESP_LOGW(TAG, "[%s] Free heap size: %u bytes, Minimum free heap size: %u bytes",
              task_name, (unsigned int)esp_get_free_heap_size(), (unsigned int)esp_get_minimum_free_heap_size());
 }
 void uart_receive_task(void *arg)
@@ -29,6 +29,7 @@ void uart_receive_task(void *arg)
             {
                 // 打印内存使用情况
                 log_memory_usage("app_main");
+
                 for (int i = 0; i < FRAME_LEN; i++)
                     printf("0x%02X ", buffer[i]);
                 printf("\n");
@@ -43,6 +44,7 @@ void uart_receive_task(void *arg)
                 {
                     uint16_t data = buffer[4] | (buffer[5] << 8);
                     parse_data_buffer(data);
+
                     ble_set_ch2_value(buffer, FRAME_LEN); // 特征值2用于发送给小程序端，格式为 a5 fa 00 81 c5 07 ec fb
 
                     if (isFanDataChanged())
@@ -88,11 +90,12 @@ void uart_receive_task(void *arg)
 // 每隔120s上报一次(可设置)
 void hw_timer_report_task(void *param)
 {
-    ESP_LOGI(TAG, "hw_timer_report_task started");
     while (1)
     {
         if (report_flag)
         {
+
+            log_memory_usage("MAIN_FLASH"); // 打印内存使用情况
             report_flag = false;
 
             mqtt_report_BaseData(); // 上报温湿度等基础数据
@@ -129,7 +132,7 @@ void app_main(void)
 
     ble_start();
     uart_init();
-    hw_timer_init();
+    // hw_timer_init();
 
     BaseType_t ret1 = xTaskCreate(uart_receive_task, "uart_receive_task", 1024, NULL, 10, NULL);
     ESP_LOGI(TAG, "Create uart_receive_task: %s", ret1 == pdPASS ? "SUCCESS" : "FAILED");
