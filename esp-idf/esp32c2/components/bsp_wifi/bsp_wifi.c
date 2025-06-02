@@ -136,7 +136,7 @@ void wifi_start_provision(void)
     ESP_ERROR_CHECK(wifi_prov_mgr_init(config));
 
     // 强制清除上次配网信息（可选，开发测试阶段建议保留）
-    //wifi_prov_mgr_reset_provisioning();
+    wifi_prov_mgr_reset_provisioning();
 
     ESP_ERROR_CHECK(wifi_prov_mgr_is_provisioned(&provisioned));
 
@@ -145,7 +145,7 @@ void wifi_start_provision(void)
         is_provisioning = true;
         ESP_LOGI(TAG, "Starting provisioning...");
 
-        const char *service_name = "ESP32_PROV";
+        const char *service_name = "SMARTHOST_PROV";
         const char *service_key = "abcd1234"; // SoftAP 密码
         const char *pop = "abcd1234";         // Proof of possession
 
