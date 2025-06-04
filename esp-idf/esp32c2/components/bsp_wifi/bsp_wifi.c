@@ -132,12 +132,16 @@ void wifi_start_provision(void)
     bool provisioned = false;
     wifi_prov_mgr_config_t config = {
         .scheme = wifi_prov_scheme_softap,
-        .scheme_event_handler = WIFI_PROV_EVENT_HANDLER_NONE};
+        .scheme_event_handler = WIFI_PROV_EVENT_HANDLER_NONE,
+        .app_event_handler = WIFI_PROV_EVENT_HANDLER_NONE,
+    };
+
     ESP_ERROR_CHECK(wifi_prov_mgr_init(config));
 
     // 强制清除上次配网信息（可选，开发测试阶段建议保留）
     wifi_prov_mgr_reset_provisioning();
-
+    // mdns_init();
+    // mdns_hostname_set("smarthost"); // 设置主机名
     ESP_ERROR_CHECK(wifi_prov_mgr_is_provisioned(&provisioned));
 
     if (!provisioned)

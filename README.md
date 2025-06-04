@@ -2,7 +2,9 @@
 
 ## 烧录说明
 
-- 前往下载 [Flash Download Tool](https://bbs.espressif.com/viewtopic.php?f=57&t=433) 烧录工具，按照图中的`SPIFlashConfig`进行配置（注意`SPI SPEED`是`26.7MHz`），随后将合并好的`.bin`文件进行在地址`0x00`直接进行烧录即可。稍等片刻，芯片会等待配网，此时如果看到芯片的热点名称，即视为烧录成功且程序成功运行
+- 前往下载 [Flash Download Tool](https://bbs.espressif.com/viewtopic.php?f=57&t=433) 烧录工具，选择`ESP32-C2`，按照图中的`SPIFlashConfig`进行配置（注意`SPI SPEED`是`26.7MHz`），随后将合并好的`.bin`文件进行在地址`0x00`直接进行烧录即可。稍等片刻，芯片会等待配网，此时如果看到芯片的热点名称，即视为烧录成功且程序成功运行
+
+<img src="C:\Users\odddouglas\AppData\Roaming\Typora\typora-user-images\image-20250604230817671.png" alt="image-20250604230817671" style="zoom:50%;" />
 
 ![](manual\img\flashdownload.png)
 
@@ -15,7 +17,7 @@
 ```
 2. （需要官方app的softap配网工具）进行配网
 ```c
-    const char *service_name = "ESP32_PROV";
+    const char *service_name = "SMARTHOST_PROV";
     const char *service_key = "abcd1234"; // SoftAP 密码
     const char *pop = "abcd1234";         // Proof of possession
 ```
@@ -23,6 +25,89 @@
 
   该工具的使用流程就是`Provision New Device`->`i don't have a QR code`->`Connect`->`连接芯片热点`->`选择对应wifi填入信息`->`等待配网响应成功即可`。需要注意的是，第一次配网成功之后，之后esp将会自动连接配置好的wifi而无需再次配网（后续可进行设置，比如用户希望更换网络）
 
+## SOFTAP：
+
+前往开源配网软件源代码 [SoftAPTransport.java](https://github.com/espressif/esp-idf-provisioning-android/blob/master/provisioning/src/main/java/com/espressif/provisioning/transport/SoftAPTransport.java)，中，HTTP 请求的核心流程体现在如下方法里：
+
+- `sendPostRequest(String path, byte[] data, ResponseListener listener)`
+  负责构造并发送 HTTP POST 请求到指定 path（如 `prov-session`, `prov-scan` 等），并处理服务器（ESP 设备）响应。
+
+- `sendConfigData(String path, byte[] data, ResponseListener listener)`
+  对外暴露接口，实际通过线程池异步调用 `sendPostRequest` 完成配网通信。
+
+  看到 java 代码片段如下（省略部分内容）：
+
+```java
+URL url = new URL("http://" + baseUrl + "/" + path);
+HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+urlConnection.setRequestMethod("POST");
+urlConnection.setRequestProperty("Accept", "text/plain");
+urlConnection.setRequestProperty("Content-type", "application/x-www-form-urlencoded");
+...
+OutputStream os = urlConnection.getOutputStream();
+os.write(data);
+os.close();
+```
+
+其中 `baseUrl` 会配置为设备的 mDNS 地址，比如 `wifi-prov.local`。而esp默认的官方地址为`192.168.4.1`，这一点在esp的调试终端中可以看到
+
+```bash
+2025-06-04 20:22:23 I (1288) esp_netif_lwip: DHCP server started on interface WIFI_AP_DEF with IP: 192.168.4.1
+```
+
+- 当设备连接上之后，设备端分配到IP地址。此时就可以进行http的访问请求了
+
+```bash
+2025-06-04 21:11:57 I (2974568) wifi:station: 8c:c6:81:9a:bb:18 join, AID=1, bgn, 20
+2025-06-04 21:11:57 I (2974848) esp_netif_lwip: DHCP server assigned IP to a client, IP is: 192.168.4.2
+```
+
+- 而ESP 侧的 protocomm 实现要求所有 POST 请求必须有 `Content-Length` 字段（哪怕 body 为空）。
+
+```bash
+curl -v -X POST -H "Content-Type: application/json" -d '' http://192.168.4.1/proto-ver
+```
+
+- 连接后，客户端应用程序可以立即从 `proto-ver` 端点获取版本或功能信息。所有与此端点的通信均未加密，因此在建立安全会话之前，可以检索相关必要信息，确保会话兼容。响应数据采用 JSON 格式，示例如下：`prov: { ver: v1.1, sec_ver: 1, sec_patch_ver: 0, cap: [no_pop] }, my_app: { ver: 1.345, cap: [cloud, local_ctrl] },....`。此时在终端进行访问成功之后，终端信息如下所示，拿到了`prov`的json文本标签即视为成功。
+
+```bash
+Note: Unnecessary use of -X or --request, POST is already inferred.
+*   Trying 192.168.4.1:80...
+* Connected to 192.168.4.1 (192.168.4.1) port 80
+* using HTTP/1.x
+> POST /proto-ver HTTP/1.1
+> Host: 192.168.4.1
+> User-Agent: curl/8.12.1
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 2
+>
+* upload completely sent off: 2 bytes
+< HTTP/1.1 200 OK
+< Content-Type: text/html
+< Content-Length: 73
+< Set-Cookie: session=2252508986
+<
+{
+        "prov": {
+                "ver":  "v1.1",
+                "sec_ver":      1,
+                "cap":  ["wifi_scan"]
+        }
+}* Connection #0 to host 192.168.4.1 left intact
+
+```
+
+- 随后对该数据包进行解析即可，连接到 ESP 设备的热点，确保已经连接上 ESP 设备开启的 Wi-Fi 热点（SoftAP）。访问以下 HTTP 端点，具体的客户端实现步骤请跳转到 [##MINIPROGRAM](##MINIPROGRAM) 
+
+> 获取版本信息：
+> http://192.168.4.1/proto-ver
+> 建立会话：
+> http://192.168.4.1/prov-session
+> 启动 Wi-Fi 扫描：
+> http://192.168.4.1/prov-scan
+> 配置 Wi-Fi 凭据：
+> http://192.168.4.1/prov-config
 
 ## MQTT：
 
@@ -128,7 +213,40 @@ function writeBLECharacteristicValue(page, jsonStr) {
     });
 }
 ```
+- softap配网相关http逻辑：在原生框架中，有一段提示。`typings\types\wx\lib.wx.api.d.ts`中
 
+```ts
+* 发起 HTTPS 网络请求。使用前请注意阅读[相关说明](https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.html)。
+*
+* **data 参数说明**
+*
+*
+* 最终发送给服务器的数据是 String 类型，如果传入的 data 不是 String 类型，会被转换成 String 。转换规则如下：
+* - 对于 `GET` 方法的数据，会将数据转换成 query string（`encodeURIComponent(k)=encodeURIComponent(v)&encodeURIComponent(k)=encodeURIComponent(v)...`）
+* - 对于 `POST` 方法且 `header['content-type']` 为 `application/json` 的数据，会对数据进行 JSON 序列化
+* - 对于 `POST` 方法且 `header['content-type']` 为 `application/x-www-form-urlencoded` 的数据，会将数据转换成 query string `（encodeURIComponent(k)=encodeURIComponent(v)&encodeURIComponent(k)=encodeURIComponent(v)...）`
+*
+```
+- 具体的HTTP端点情况请跳转到[##SOFTAP](##SOFTAP) 
+
+![image-20250604225021125](\manual\img\softap.jpg)
+
+```ts
+wx.request({
+  url: 'http://192.168.4.1/proto-ver',
+  method: 'POST',
+  header: {
+    'Content-Type': 'application/json' //请求头
+  },
+  data: '', // 发送空字符串，确保 Content-Length: 0
+  success: function(res) {
+    console.log('请求成功：', res.data);
+  },
+  fail: function(err) {
+    console.error('请求失败：', err);
+  }
+});
+```
 ## UART：
 
 - `TX(IO1)`，`RX(IO3)`，这是负责收发语音芯片数据的串口NUM1，另一个串口负责打印信息，esp32c2的系列的默认串口0有所区别。已完成收发，对语音芯片的数据进行解析并上传，同时接收云端命令下发并解析发给语音芯片完成控制

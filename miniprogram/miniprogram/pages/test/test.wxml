@@ -1,3 +1,4 @@
+<button bindtap="sendBLEData">发送数据</button>
 <button wx:if="{{!isConnected}}" bindtap="openBluetoothAdapter">开始扫描</button>
 <button wx:else bindtap="closeBLEConnection">断开连接 - {{name}}</button>
 <!-- 未连接 -->
