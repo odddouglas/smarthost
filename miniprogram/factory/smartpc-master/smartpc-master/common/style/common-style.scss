@@ -1,0 +1,20 @@
+view,swiper,swiper-item{
+	box-sizing: border-box;
+}
+
+.Layout{
+	padding: 30rpx;
+	// background: $u-bg-color;
+	background: #f6f6f6;
+	min-height: 100vh;
+}
+
+.common-box{
+	margin-bottom: 20rpx;
+	border: 1rpx solid #eee;
+	padding: 20rpx;
+	box-shadow: 0 0 30rpx rgba(0,0,0,0.1);
+	border-radius: 15rpx;
+	background-color: #fff;
+	width: 100%;
+}
