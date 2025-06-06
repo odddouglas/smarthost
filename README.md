@@ -4,9 +4,9 @@
 
 - 前往下载 [Flash Download Tool](https://bbs.espressif.com/viewtopic.php?f=57&t=433) 烧录工具，选择`ESP32-C2`，按照图中的`SPIFlashConfig`进行配置（注意`SPI SPEED`是`26.7MHz`），随后将合并好的`.bin`文件进行在地址`0x00`直接进行烧录即可。稍等片刻，芯片会等待配网，此时如果看到芯片的热点名称，即视为烧录成功且程序成功运行
 
-<img src="C:\Users\odddouglas\AppData\Roaming\Typora\typora-user-images\image-20250604230817671.png" alt="image-20250604230817671" style="zoom:50%;" />
+<img src="manual\img\flashdownload0.png" alt="" style="zoom:50%;" />
 
-![](manual\img\flashdownload.png)
+<img src="manual\img\flashdownload.png" alt="" style="zoom:50%;" />
 
 ## WIFI：
 
@@ -229,8 +229,7 @@ function writeBLECharacteristicValue(page, jsonStr) {
 ```
 - 具体的HTTP端点情况请跳转到[##SOFTAP](##SOFTAP) 
 
-![image-20250604225021125](\manual\img\softap.jpg)
-
+<img src="manual\img\softap.jpg" alt="" style="zoom:50%;" />
 ```ts
 wx.request({
   url: 'http://192.168.4.1/proto-ver',
@@ -262,9 +261,8 @@ wx.request({
 
 - 连接示意图如下，在板子上找到`PB6`和`PB5`，分别连接espc2的`IO1`和`IO3`，c2的默认串口`RX0`和`TX0`专门烧录（集成开发板就直接用usb进行烧录即可）
 
-![](manual\img\sch1.png)
-
-![](manual\img\pcb1.png)
+<img src="manual\img\sch1.png" alt="" style="zoom:50%;" />
+<img src="manual\img\pcb1.png" alt="" style="zoom:50%;" />
 
 ## HW_TIMER：
 
