@@ -151,9 +151,9 @@ void wifi_start_provision(void)
 
         const char *service_name = "SMARTHOST_PROV";
         const char *service_key = "abcd1234"; // SoftAP 密码
-        const char *pop = "abcd1234";         // Proof of possession
+        const char *pop = NULL;         // Proof of possession
 
-        wifi_prov_security_t security = WIFI_PROV_SECURITY_1;
+        wifi_prov_security_t security = WIFI_PROV_SECURITY_0;
 
         ESP_ERROR_CHECK(wifi_prov_mgr_start_provisioning(security, pop, service_name, service_key));
     }

@@ -238,7 +238,7 @@ wx.request({
   header: {
     'Content-Type': 'application/json' //请求头
   },
-  data: '', // 发送空字符串，确保 Content-Length: 0
+  data: '{}', // 发送空j字符串，确保 Content-Length: 0
   success: function(res) {
     console.log('请求成功：', res.data);
   },
