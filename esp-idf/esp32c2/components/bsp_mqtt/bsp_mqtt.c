@@ -35,6 +35,7 @@ void mqtt_event_callback(void *event_handler_arg,
         else
         {
             ESP_LOGE(TAG, "Max reconnect attempts reached. Giving up.");
+            esp_restart();
         }
         break;
 

@@ -97,8 +97,8 @@ void hw_timer_report_task(void *param)
 
             log_memory_usage("MAIN_FLASH"); // 打印内存使用情况
             report_flag = false;
-
-            mqtt_report_BaseData(); // 上报温湿度等基础数据
+            send_status_packet(0xFFFF); // 获取最新设备状态，此时可以如果差量变化，则更新ble和mqtt状态
+            // mqtt_report_BaseData(); // 上报温湿度等基础数据
             // vTaskDelay(pdMS_TO_TICKS(1000));
 
             // mqtt_report_Fan();
@@ -130,9 +130,10 @@ void app_main(void)
     mqtt_start();
     xSemaphoreTake(s_mqtt_connect_sem, portMAX_DELAY); // 等待 MQTT 成功连接
 
+    uart_init(); // 先初始化串口，蓝牙看后续连接需求
     ble_start();
-    uart_init();
-    // hw_timer_init();
+    // uart_init();
+    hw_timer_init();
 
     BaseType_t ret1 = xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
     ESP_LOGI(TAG, "Create uart_receive_task: %s", ret1 == pdPASS ? "SUCCESS" : "FAILED");

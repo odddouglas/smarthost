@@ -289,7 +289,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
         esp_ble_gap_update_conn_params(&conn_params);
         gl_conn_id = param->connect.conn_id;
 
-        
+        send_status_packet(0xFFFF); // 获取一次最新状态，此时出现差量，就会进行一次上传
         break;
     case ESP_GATTS_DISCONNECT_EVT: // 收到断开连接事件
         ESP_LOGI(TAG, "ESP_GATTS_DISCONNECT_EVT, reason = 0x%x", param->disconnect.reason);
@@ -373,6 +373,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         }
         break;
     case ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT: // 更新连接参数成功事件
+        // ble_set_ch2_value(buffer, FRAME_LEN); // 特征值2用于发送给小程序端
         ESP_LOGI(TAG, "update connection params status = %d, min_int = %d, max_int = %d,conn_int = %d,latency = %d, timeout = %d",
                  param->update_conn_params.status,
                  param->update_conn_params.min_int,
