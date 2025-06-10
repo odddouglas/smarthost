@@ -9,6 +9,8 @@
 #define MAX_CONNECT_ERRORS 3
 #define FAN_VOLUME_LEN 10
 #define LIGHT_COLOR_LEN 10
+#define MAX_RECONNECT_ATTEMPTS 5 // 最大重试次数
+#define RECONNECT_DELAY_MS 5000  // 重试间隔时间（毫秒）
 
 #define MQTT_REPORT_INTERVAL_MS 1000
 #define MQTT_ADDRESS "mqtt://e5e7404266.st1.iotda-device.cn-north-4.myhuaweicloud.com:1883"

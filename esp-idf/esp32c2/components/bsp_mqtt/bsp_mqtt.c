@@ -3,6 +3,7 @@ static const char *TAG = "MQTT";
 
 static esp_mqtt_client_handle_t mqtt_handle = NULL;
 uint8_t connectErrorCount = 0;
+int8_t reconnectAttempts = 0;
 IssueData2MCU IssueData = {0};
 
 void mqtt_event_callback(void *event_handler_arg,
@@ -17,11 +18,24 @@ void mqtt_event_callback(void *event_handler_arg,
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         esp_mqtt_client_subscribe(mqtt_handle, MQTT_TOPIC_COMMAND, 1); // 订阅命令topic
-        xSemaphoreGive(s_mqtt_connect_sem);                            // 释放信号量，使得mqtt开始连接
+        connectErrorCount = 0;
+        reconnectAttempts = 0;              // 重置重试计数
+        xSemaphoreGive(s_mqtt_connect_sem); // 释放信号量，使得mqtt开始连接
         break;
 
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+        reconnectAttempts++;
+        if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS)
+        {
+            ESP_LOGW(TAG, "Attempting to reconnect (%d/%d)...", reconnectAttempts, MAX_RECONNECT_ATTEMPTS);
+            vTaskDelay(RECONNECT_DELAY_MS / portTICK_PERIOD_MS); // 延迟重试
+            esp_mqtt_client_reconnect(mqtt_handle);              // 尝试重新连接
+        }
+        else
+        {
+            ESP_LOGE(TAG, "Max reconnect attempts reached. Giving up.");
+        }
         break;
 
     case MQTT_EVENT_SUBSCRIBED:
@@ -43,15 +57,15 @@ void mqtt_event_callback(void *event_handler_arg,
         log_memory_usage("MQTT_FLASH");
         printf("MQTT: DATA=%.*s\r\n", data->data_len, data->data);
         mqtt_cmd_handler((char *)data->topic, data->data, data->data_len); // 处理命令
-        //mqtt_respond((char *)data->topic, "success");
+        // mqtt_respond((char *)data->topic, "success");
         break;
 
     case MQTT_EVENT_ERROR:
         ESP_LOGE(TAG, "MQTT_EVENT_ERROR");
-        connectErrorCount++;
-        printf("MQTT: connectErrorCount:%d\r\n", connectErrorCount);
-        if (connectErrorCount >= MAX_CONNECT_ERRORS) // 软件看门狗复位
-            esp_restart();
+        // connectErrorCount++;
+        // printf("MQTT: connectErrorCount:%d\r\n", connectErrorCount);
+        // if (connectErrorCount >= MAX_CONNECT_ERRORS) // 软件看门狗复位
+        //     esp_restart();
         break;
 
     default:
