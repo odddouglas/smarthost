@@ -288,6 +288,8 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 
         esp_ble_gap_update_conn_params(&conn_params);
         gl_conn_id = param->connect.conn_id;
+
+  
         break;
     case ESP_GATTS_DISCONNECT_EVT: // 收到断开连接事件
         ESP_LOGI(TAG, "ESP_GATTS_DISCONNECT_EVT, reason = 0x%x", param->disconnect.reason);

@@ -45,7 +45,7 @@ void uart_receive_task(void *arg)
                     uint16_t data = buffer[4] | (buffer[5] << 8);
                     parse_data_buffer(data);
 
-                    ble_set_ch2_value(buffer, FRAME_LEN); // 特征值2用于发送给小程序端，格式为 a5 fa 00 81 c5 07 ec fb
+                    ble_set_ch2_value(buffer, FRAME_LEN); // 特征值2用于发送给小程序端，格式类似 a5 fa 00 81 c5 07 ec fb
 
                     if (isFanDataChanged())
                     {

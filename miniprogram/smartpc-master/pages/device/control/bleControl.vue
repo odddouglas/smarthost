@@ -10,11 +10,11 @@
 		
 		<!-- 机箱开关 -->
 		<view class="state common-box" @click="powerCtrl">
-			<uni-icons custom-prefix="iconfont" type="icon-kaiji" size="40" :color="pcStatus ? '#2A82E4' : 'gray'"></uni-icons>
+			<uni-icons custom-prefix="iconfont" type="icon-kaiji" size="40" :color="pcStatus === '1' ? '#2A82E4' : 'gray'"></uni-icons>
 			<text>{{(pcStatus === '1') ? '已开机' : '已关机'}}</text>
 		</view>
 		
-		<view :class="pcStatus ? '' : 'disabled'" @click="openPopup">
+		<view :class="pcStatus === '1' ? '' : 'disabled'" @click="openPopup">
 			<uni-popup ref="popup" type="bottom" border-radius="10px 10px 0 0" background-color="#fff">
 				<view class="popbox">
 					<view class="popTitle">设备已关机</view>
@@ -25,18 +25,20 @@
 			<view class="fansBlock common-box">
 				<view class="fansHeader">
 					<view>机箱风扇</view>
-					<switch :checked="isPoweredOn? true : false" @change="pcFanStatusChange" :disabled="pcStatus ? false : true" color="#2A82E4"/>
+					<!-- <switch :checked="isPoweredOn? true : false" @change="pcFanStatusChange" :disabled="pcStatus ? false : true" color="#2A82E4"/> -->
 				</view>
 				<view class="fans">
 					<!-- 进风风扇 -->
 					<view class="inFans common-box">
 						<view>进风</view>
-						<switch :checked="inchecked ? true : false" @change="fanInStatusChange" :disabled="isPoweredOn ? false : true" color="#2A82E4"/>				
+						<!-- <switch :checked="inchecked ? true : false" @change="fanInStatusChange" :disabled="isPoweredOn ? false : true" color="#2A82E4"/> -->
+						<switch :checked="inchecked === '1' ? true : false" @change="fanInStatusChange" color="#2A82E4"/>
 					</view>
 					<!-- 出风风扇 -->
 					<view class="outFans common-box">
 						<view>出风</view>
-						<switch :checked="outchecked ? true : false" @change="fanOutStatusChange" :disabled="isPoweredOn ? false : true" color="#2A82E4"/>						
+						<!-- <switch :checked="outchecked ? true : false" @change="fanOutStatusChange" :disabled="isPoweredOn ? false : true" color="#2A82E4"/> -->
+						<switch :checked="outchecked === '1' ? true : false" @change="fanOutStatusChange" color="#2A82E4"/>
 					</view>
 					
 				</view>
@@ -44,8 +46,10 @@
 					<view>
 						<uni-icons custom-prefix="iconfont" type="icon-a-28atongfengfengshan" size="30"></uni-icons>
 					</view>
-					<view class="uslider">
-						<u-slider v-model="windSpeed" @end="fanVolumeChange(windSpeed)" :disabled="!isPoweredOn" active-color="#2A82E4" step="50" min="0" max="100" block-width="40" block-color="white" height="40"></u-slider>
+					<view class="uslider" @click="fanVolumeChange(windSpeed)">
+						<u-slider v-model="windSpeed" @end="fanVolumeChange(windSpeed)" active-color="#2A82E4" step="50" min="0" max="100" block-width="60" block-color="white" height="40">
+							
+						</u-slider>
 					</view>
 					<view class="text">
 						<text>低</text>
@@ -59,7 +63,7 @@
 			<view class="lightBlock common-box">
 				<view class="lightHeader">
 					<view>灯光</view>
-					<switch :checked="lightPower ? true : false" @change="pcLightStatusChange" :disabled="pcStatus ? false : true" color="#2A82E4"/>										
+					<switch :checked="lightPower ? true : false" @change="pcLightStatusChange" color="#2A82E4"/>										
 				</view>			
 				<view class="lightSlider common-box">
 					<view class="top">
@@ -97,13 +101,13 @@
 				sliderValue: 0, // 初始化滑块值
 				userDeviceId:"",	// 用户设备id
 				pcInfo:null,
-				pcStatus: '',
-				inchecked: true, 		// 进风开关状态
-				outchecked: true,		// 出风开关状态
-				isPoweredOn: false,		// 开关状态
+				pcStatus: '',		// 已开机/已关机
+				inchecked: '', 		// 进风开关状态
+				outchecked: '',		// 出风开关状态
+				windSpeed: 0,		// 风速
+				isPoweredOn: false,		// 风扇总开关状态（已弃用
 				lightPower: false,		// 灯光开关
 				lightIntensity: 50,	// 灯光亮度
-				windSpeed: 0,		// 风速
 				color: {r: 0,g: 175,b: 79,a: 1},
 				bleDevices:{},
 			};
@@ -121,7 +125,7 @@
 		methods:{
 			openPopup(){
 				// 通过组件定义的ref调用uni-popup方法 ,如果传入参数 ，type 属性将失效 ，仅支持 ['top','left','bottom','right','center']
-				if(!this.pcInfo.pcStatus) this.$refs.popup.open()
+				if(this.pcStatus === '0') this.$refs.popup.open()
 			},
 			disConnect(){
 				uni.reLaunch({
@@ -135,21 +139,43 @@
 			powerCtrl(){
 				
 			},
-			// 风扇总开关
-			pcFanStatusChange(){
-				
-			},
 			// 风扇进风开关
 			fanInStatusChange(){
+				let dataToSend = "";
+				if(this.inchecked === '1'){
+					this.inchecked = '0';
+					dataToSend = "a5 fa 00 03 15 00 b7 fb"; // 示例数据
+				}else{
+					this.inchecked = '1';
+					dataToSend = "a5 fa 00 03 13 00 b5 fb"; // 示例数据
+				}
 				
+				bluetooth.writeData(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleWriteCharacteristicId, dataToSend);
 			},
 			// 风扇出风开关
 			fanOutStatusChange(){
-				
+				let dataToSend = "";
+				if(this.outchecked === '1'){
+					this.outchecked = '0';
+					dataToSend = "a5 fa 00 03 16 00 b8 fb"; // 示例数据
+				}else{
+					this.outchecked = '1';
+					dataToSend = "a5 fa 00 03 14 00 b6 fb"; // 示例数据
+				}
+				bluetooth.writeData(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleWriteCharacteristicId, dataToSend);
 			},
 			// 风扇风量
 			fanVolumeChange(sliderValue){
-				
+				let dataToSend = "";
+				if(sliderValue === 0){
+					dataToSend = "a5 fa 00 03 06 00 a8 fb"; // 最小风量
+				}else if(sliderValue === 50){
+					dataToSend = "a5 fa 00 03 05 00 a7 fb"; // 中等风量
+				}else if(sliderValue === 100){
+					dataToSend = "a5 fa 00 03 04 00 a6 fb"; // 最大风量
+				}
+				console.log("风速：",sliderValue)
+				bluetooth.writeData(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleWriteCharacteristicId, dataToSend);
 			},
 			// 灯光开光
 			pcLightStatusChange(){
@@ -184,6 +210,7 @@
 			    }
 			    return binary.trim();
 			},
+			// 蓝牙特征值变化
 			onBLECharacteristicValueChange(characteristic){
 				if (characteristic.value) {
 					
@@ -223,6 +250,15 @@
 					console.log("出风风扇状态:", exhaustFanStatus);
 					console.log("风扇速度:", fanSpeed);
 					this.pcStatus = hostStatus;
+					this.inchecked = intakeFanStatus;
+					this.outchecked = exhaustFanStatus;
+					if(fanSpeed === '01'){
+						this.windSpeed = 0;
+					}else if(fanSpeed === '10'){
+						this.windSpeed = 50;
+					}else if(fanSpeed === '11'){
+						this.windSpeed = 100;
+					}
 					
 					// parseReceivedData(page, receivedData);
 					// console.log("监听低功耗蓝牙设备的特征值变化", JSON.stringify(result));
@@ -328,6 +364,7 @@
 			
 			.uslider{
 				margin: 20rpx 0;
+				padding: 0 30rpx;
 			}
 			.text{
 				display: flex;

@@ -70,6 +70,7 @@
 	
 	import * as sec0 from '../../../common/sec0.js';
 	import * as wificonfig from '../../../common/wifi_config.js';
+	// import * as wifiscan from '../../../common/wifi_scan.js';
 	
 	export default {
 		data() {
@@ -164,9 +165,8 @@
 					将获取到的wifi信息发送给设备
 					 等待设备进行联网，接受设备联网成功的信息
 					 然后跳转到联网成功页面*/
-				// 设备连上wifi
-				// this.connectToWifi(this.wifiInfo);
-				// 从 proto-ver 端点获取设备版本信息
+				
+				// 1、从 proto-ver 端点获取设备版本信息
 				uni.request({
 					url: 'http://192.168.4.1/proto-ver',
 					method: 'POST',
@@ -175,9 +175,7 @@
 					},
 					data: '{}', // 发送空字符串，确保 Content-Length: 0
 					success: (res) => {
-						console.log('请求成功：', res);
-						const uint8arr = new Uint8Array(res); 
-						console.log(wificonfig.WiFiConfigPayload.decode(uint8arr));
+						console.log('请求成功：', res.data);
 					},
 					fail: (err)=> {
 						console.error('请求失败：', err);
@@ -185,19 +183,19 @@
 				});
 		
 				
-				// 创建会话
+				// 1、创建会话
 				// 创建消息对象
 				const message = sec0.Sec0Payload.create({
-				  msg: sec0.Sec0MsgType.S0_Session_Command, // 假设 0 是有效的枚举值
-				  sc: {}  // 假设 sc 是一个嵌套消息，符合 S0SessionCmd 的定义
+					msg: sec0.Sec0MsgType.S0_Session_Command, // 假设 0 是有效的枚举值
+					sc: {}  // 假设 sc 是一个嵌套消息，符合 S0SessionCmd 的定义
 				});
 				// 序列化为 Uint8Array
-				// const buffer = S0SessionCmd.encode(message).finish();
 				const buffer = sec0.Sec0Payload.encode(message).finish();
 				// Log the serialized buffer
-				console.log(buffer);
+				// console.log(buffer);
+				// 转成微信能够接受的arraybuffer格式
 				const newbuffer = Uint8Array.from(buffer).buffer;
-				console.log(newbuffer);
+				// console.log(newbuffer);
 				// 使用 wx.request 或 wx.connectSocket 发送 buffer
 				uni.request({
 					url: 'http://192.168.4.1/prov-session', // 替换为设备的实际IP地址和端点
@@ -207,93 +205,212 @@
 					},
 					data: newbuffer, // 发送编码后的Protobuf消息
 					success: (res) => {
-						console.log('会话成功',res);
-						const uint8arr = new Uint8Array(res); 
-						console.log(wificonfig.WiFiConfigPayload.decode(uint8arr));
+						console.log('会话成功',res)
+						uni.showToast({
+							title: '建立会话成功',
+							icon: 'none',
+						});
+						
+						// 2、创建 WiFi 配置消息对象
+						const wifimessage =  wificonfig.WiFiConfigPayload.create({
+							msg: wificonfig.WiFiConfigMsgType.TypeCmdSetConfig, // 设置 WiFi 配置的枚举值
+							cmdSetConfig: {
+								ssid: this.stringToUTF8Array(this.wifiInfo.SSID), // wifi名的 UTF-8 编码
+								passphrase: this.stringToUTF8Array(this.wifiInfo.password), // Password的 UTF-8 编码	
+							}
+							
+						});			
+						// 序列化为 Uint8Array
+						const wifibuffer =  wificonfig.WiFiConfigPayload.encode(wifimessage).finish();
+						// Log the serialized buffer
+						// console.log('wifi信息',wifibuffer);
+						const newwifibuffer = Uint8Array.from(wifibuffer).buffer;
+						// console.log(newwifibuffer);
+						// 使用 uni.request 发送 buffer
+						uni.request({
+							url: 'http://192.168.4.1/prov-config', // 替换为设备的实际IP地址和端点
+							method: 'POST',
+							header: {
+								'content-type': 'application/octet-stream' // Protobuf 消息的 MIME 类型
+							},
+							data: newwifibuffer, // 发送编码后的 Protobuf 消息
+							success: (res) => {
+								console.log('WiFi 配置成功', res);
+								uni.showToast({
+									title: 'WiFi信息配置成功',
+									icon: 'none',
+								});
+								
+								// 3、发送 ApplyConfig
+								const applyConfigMessage = wificonfig.WiFiConfigPayload.create({
+									msg: wificonfig.WiFiConfigMsgType.TypeCmdApplyConfig,
+									cmdApplyConfig: {} // 空对象即可
+								});
+								const applyBuffer = wificonfig.WiFiConfigPayload.encode(applyConfigMessage).finish();
+								const applyArrayBuffer = Uint8Array.from(applyBuffer).buffer;
+								uni.request({
+									url: 'http://192.168.4.1/prov-config',
+									method: 'POST',
+									header: {
+										'content-type': 'application/octet-stream',
+									},
+									data: applyArrayBuffer,
+									success: (res) => {
+										console.log('ApplyConfig 成功', res);
+										uni.showToast({
+											title: '配网成功',
+											icon: 'none',
+										});
+										
+										// 4、获取wifi连接状态
+										// 1. 创建 GetStatus 消息对象
+										// const getStatusMessage = wificonfig.WiFiConfigPayload.create({
+										//     msg: wificonfig.WiFiConfigMsgType.TypeCmdGetStatus // 获取状态的枚举值
+										// });
+										
+										// // 2. 序列化为 Uint8Array
+										// const getStatusBuffer = wificonfig.WiFiConfigPayload.encode(getStatusMessage).finish();
+										// const getStatusArrayBuffer = Uint8Array.from(getStatusBuffer).buffer;
+										
+										// // 3. 使用 uni.request 发送 buffer
+										// uni.request({
+										//     url: 'http://192.168.4.1/prov-config', // 替换为设备的实际IP地址和端点
+										//     method: 'POST',
+										//     header: {
+										//         'content-type': 'application/octet-stream' // Protobuf 消息的 MIME 类型
+										//     },
+										//     data: getStatusArrayBuffer, // 发送编码后的 Protobuf 消息
+										//     success: (res) => {
+										//         console.log('GetStatus 请求成功', res);
+										//         // 4. 解析响应数据
+										//         const responseBuffer = new Uint8Array(res.data);
+										//         const responseMessage = wificonfig.WiFiConfigPayload.decode(responseBuffer);
+										// 		console.log('返回结果解析',responseMessage)
+										
+										//         // 提取状态信息
+										//         if (responseMessage.respGetStatus) {
+										//             const status = responseMessage.respGetStatus.status;
+										//             const staState = responseMessage.respGetStatus.staState;
+										//             const failReason = responseMessage.respGetStatus.failReason;
+										//             const connected = responseMessage.respGetStatus.connected;
+										
+										//             console.log('WiFi 状态:', {
+										//                 status,
+										//                 staState,
+										//                 failReason,
+										//                 connected
+										//             });
+										
+										//             // 根据状态显示提示
+										//             if (staState === wificonfig.WifiStationState.Connected) {
+										//                 uni.showToast({
+										//                     title: 'WiFi 已连接',
+										//                     icon: 'success',
+										//                 });
+										//             } else if (staState === wificonfig.WifiStationState.ConnectionFailed) {
+										//                 uni.showToast({
+										//                     title: 'WiFi 连接失败',
+										//                     icon: 'none',
+										//                 });
+										//             } else {
+										//                 uni.showToast({
+										//                     title: 'WiFi 状态未知',
+										//                     icon: 'none',
+										//                 });
+										//             }
+										//         } else {
+										//             console.error('未收到状态响应');
+										//             uni.showToast({
+										//                 title: '未收到状态响应',
+										//                 icon: 'none',
+										//             });
+										//         }
+										//     },
+										//     fail: (err) => {
+										//         console.error('GetStatus 请求失败', err);
+										//         uni.showToast({
+										//             title: '获取 WiFi 状态失败',
+										//             icon: 'none',
+										//         });
+										//     }
+										// });
+										
+										this.isConnect = true;
+									},
+									fail: (err) => {
+										console.error('ApplyConfig 失败', err);
+										uni.showToast({
+											title: '配网失败',
+											icon: 'none',
+										});
+									}
+								});
+							},
+							fail: (err) => {
+								console.log('WiFi 配置失败', err);
+								uni.showToast({
+									title: 'WiFi信息配置失败',
+									icon: 'none',
+								});
+							}
+						});
+						
 					},
 					fail: (err) => {
 						console.log('会话失败',err)
+						uni.showToast({
+							title: '建立会话失败',
+							icon: 'none',
+						});
 					}
 				});
 				
 				// this.wifiInfo.SSID = this.stringToUTF8Array(this.wifiInfo.SSID)
 				// this.wifiInfo.password = this.stringToUTF8Array(this.wifiInfo.password)
+				// this.wifiInfo.SSID = new Uint8Array(this.wifiInfo.SSID)
+				// this.wifiInfo.password = new Uint8Array(this.wifiInfo.password)
+				
 				// console.log('WiFi名',this.wifiInfo.SSID)
 				// console.log('密码',this.wifiInfo.password)
 				
 				
-				// 创建 WiFi 配置消息对象
-				const wifimessage =  wificonfig.WiFiConfigPayload.create({
-					msg: wificonfig.WiFiConfigMsgType.TypeCmdSetConfig, // 设置 WiFi 配置的枚举值
-					cmdSetConfig: {
-						ssid: this.stringToUTF8Array(this.wifiInfo.SSID), // "Hello Wi-2-2" 的 UTF-8 编码
-						passphrase: this.stringToUTF8Array(this.wifiInfo.password), // "Password!" 的 UTF-8 编码	
-					}
-					
-				});
 				
-				// // 序列化为 Uint8Array
-				const wifibuffer =  wificonfig.WiFiConfigPayload.encode(wifimessage).finish();
 				
-				// Log the serialized buffer
-				console.log('wifi信息',wifibuffer);
-				const newwifibuffer = Uint8Array.from(wifibuffer).buffer;
-				console.log(newwifibuffer);
 				
-				// 使用 uni.request 发送 buffer
-				uni.request({
-					url: 'http://192.168.4.1/prov-config', // 替换为设备的实际IP地址和端点
-					method: 'POST',
-					header: {
-						'content-type': 'application/octet-stream' // Protobuf 消息的 MIME 类型
-					},
-					data: newwifibuffer, // 发送编码后的 Protobuf 消息
-					success: (res) => {
-						console.log('WiFi 配置成功', res);
-						const uint8arr = new Uint8Array(res); 
-						console.log(wificonfig.WiFiConfigPayload.decode(uint8arr));
-					},
-					fail: (err) => {
-						console.log('WiFi 配置失败', err);
-					}
-				});
 				
-				// 发送 ApplyConfig
-				const applyConfigMessage = wificonfig.WiFiConfigPayload.create({
-				  msg: wificonfig.WiFiConfigMsgType.TypeCmdApplyConfig,
-				  cmdApplyConfig: {} // 空对象即可
-				});
 				
-				const applyBuffer = wificonfig.WiFiConfigPayload.encode(applyConfigMessage).finish();
-				const applyArrayBuffer = Uint8Array.from(applyBuffer).buffer;
-				
-				uni.request({
-				  url: 'http://192.168.4.1/prov-config',
-				  method: 'POST',
-				  header: {
-				    'content-type': 'application/octet-stream',
-				  },
-				  data: applyArrayBuffer,
-				  success: (res) => {
-				    console.log('ApplyConfig 成功',res);
-					const uint8arr = new Uint8Array(res); 
-					console.log(wificonfig.WiFiConfigPayload.decode(uint8arr));
-				    uni.showToast({
-				      title: '配网完成',
-				      icon: 'success',
-				    });
-				  },
-				  fail: (err) => {
-				    console.error('ApplyConfig 失败', err);
-				    uni.showToast({
-				      title: '发送 ApplyConfig 失败',
-				      icon: 'none',
-				    });
-				  }
-				});
-
+						
 				
 			},
+			async createSession() {
+			    try {
+			        // 创建消息对象
+			        const message = sec0.Sec0Payload.create({
+			            msg: sec0.Sec0MsgType.S0_Session_Command, // 假设 0 是有效的枚举值
+			            sc: {}  // 假设 sc 是一个嵌套消息，符合 S0SessionCmd 的定义
+			        });
+			
+			        // 序列化为 Uint8Array
+			        const buffer = sec0.Sec0Payload.encode(message).finish();
+			        const newbuffer = Uint8Array.from(buffer).buffer;
+			
+			        // 使用 uni.request 发送 buffer
+			        const response = await sendRequest('http://192.168.4.1/prov-session', newbuffer);
+			
+			        console.log('会话成功', response);
+			        uni.showToast({
+			            title: '建立会话成功',
+			            icon: 'none',
+			        });
+			    } catch (error) {
+			        console.error('会话失败', error);
+			        uni.showToast({
+			            title: '建立会话失败',
+			            icon: 'none',
+			        });
+			    }
+			},
+			
 			// 辅助函数：将字符串转换为 UTF-8 编码的字节数组
 			stringToUTF8Array(str) {
 			    // 创建一个空的字节数组

@@ -46,7 +46,7 @@
 					<view class="text">
 						<view>{{bleDevices.name}}</view>
 						<view class="deviceState">
-							状态：{{blePCstatus.pcStatus ? '已开机' : '已关机'}}					
+							状态：{{blePCstatus.pcStatus === '1' ? '已开机' : '已关机'}}					
 						</view>
 					</view>
 					<view>

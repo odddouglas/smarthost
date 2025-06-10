@@ -185,10 +185,10 @@
 								}
 								
 								// 检查是否支持 write 属性
-								// if (item.properties.write === true) {
-								// 	this.curDevice.writecharId = item.uuid;
-								// 	console.log("找到支持 write 的特征值:", item.uuid);
-								// }
+								if (item.properties.write === true) {
+									this.curDevice.writecharId = item.uuid;
+									console.log("找到支持 write 的特征值:", item.uuid);
+								}
 								
 							});
 							this.curDevice.characteristicId = characteristicId;
@@ -201,8 +201,11 @@
 							
 							console.log(this.curDevice.characteristicId)
 							if(characteristicId){
-								console.log("代码运行到这里了")
+								// console.log("代码运行到这里了")
+								
 								bluetooth.startNotice(this.curDevice.deviceId, this.curDevice.serviceId, this.curDevice.characteristicId, this.onBLECharacteristicValueChange);
+								// 获取蓝牙服务特征
+								
 							}
 						});
 						uni.hideToast();
@@ -261,6 +264,7 @@
 						bleRssi:this.curDevice.rssi,
 						bleServices:this.curDevice.serviceId,
 						bleCharacteristicId: this.curDevice.characteristicId,
+						bleWriteCharacteristicId: this.curDevice.writecharId,
 					});
 					// 成功回调
 					console.log('成功');

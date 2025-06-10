@@ -42,7 +42,7 @@ const store = new Vuex.Store({
 		vuex_locale: lifeData.vuex_locale ? lifeData.vuex_locale : '',
 		vuex_baseUrl: lifeData.vuex_baseUrl ? lifeData.vuex_baseUrl : config.baseUrl,
 		vuex_wxSessionKey: lifeData.vuex_wxSessionKey ? lifeData.vuex_wxSessionKey : '',
-		vuex_bleDev: lifeData.vuex_bleDev ? lifeData.vuex_bleDev : {name:"ceshi",bleStatus:1}, // 添加蓝牙设备信息，默认为空对象
+		vuex_bleDev: lifeData.vuex_bleDev ? lifeData.vuex_bleDev : {}, // 添加蓝牙设备信息，默认为空对象
 		// 如果vuex_version无需保存到本地永久存储，无需lifeData.vuex_version方式
 		vuex_config: config,
 		

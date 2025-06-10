@@ -205,7 +205,7 @@ const writeData = (deviceId, serviceId, characteristicId, buffer) => {
 			deviceId: deviceId,
 			serviceId: serviceId,
 			characteristicId: characteristicId,
-			value: buffer,
+			value: hex2ab(buffer),
 			success(res) {
 				console.log("writeBLECharacteristicValue success", res);
 				resolve();
