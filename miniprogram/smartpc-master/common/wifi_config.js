@@ -350,6 +350,88 @@ $root.RespGetStatus = (function() {
         }
         return message;
     };
+	// RespGetStatus.decode = function decode(reader, length, error) {
+	//     if (!(reader instanceof $Reader))
+	//         reader = $Reader.create(reader);
+	    
+	//     var end = length === undefined ? reader.len : reader.pos + length, 
+	//         message = new $root.RespGetStatus();
+	    
+	//     console.log(`开始解码 RespGetStatus: 总长度=${reader.len}, 解析长度=${end - reader.pos}`);
+	    
+	//     while (reader.pos < end) {
+	//         const currentPos = reader.pos;
+	//         var tag = reader.uint32();
+	        
+	//         console.log(`读取标签 @${currentPos}: tag=${tag}, field=${tag >>> 3}, wireType=${tag & 7}`);
+	        
+	//         if (tag === error)
+	//             break;
+	            
+	//         switch (tag >>> 3) {
+	//             case 1: {
+	//                 // 读取前检查是否有足够数据
+	//                 if (reader.pos + 4 > end) {
+	//                     console.error(`字段1读取失败: 位置=${reader.pos}, 剩余=${end - reader.pos}`);
+	//                     break;
+	//                 }
+	//                 message.status = reader.int32();
+	//                 break;
+	//             }
+	//             case 2: {
+	//                 if (reader.pos + 4 > end) {
+	//                     console.error(`字段2读取失败: 位置=${reader.pos}, 剩余=${end - reader.pos}`);
+	//                     break;
+	//                 }
+	//                 message.staState = reader.int32();
+	//                 break;
+	//             }
+	//             case 10: {
+	//                 if (reader.pos + 4 > end) {
+	//                     console.error(`字段10读取失败: 位置=${reader.pos}, 剩余=${end - reader.pos}`);
+	//                     break;
+	//                 }
+	//                 message.failReason = reader.int32();
+	//                 break;
+	//             }
+	//             case 11: {
+	//                 // 关键修改点：安全读取嵌套消息
+	//                 if (reader.pos + 4 > end) {
+	//                     console.error(`字段11长度读取失败: 位置=${reader.pos}, 剩余=${end - reader.pos}`);
+	//                     break;
+	//                 }
+	                
+	//                 const nestedLength = reader.uint32();
+	//                 const nestedEnd = reader.pos + nestedLength;
+	                
+	//                 console.log(`字段11: 嵌套长度=${nestedLength}, 嵌套结束=${nestedEnd}, 总结束=${end}`);
+	                
+	//                 if (nestedEnd > end) {
+	//                     console.error(`字段11嵌套消息越界: 嵌套结束=${nestedEnd}, 总结束=${end}`);
+	                    
+	//                     // 恢复策略：跳过整个嵌套消息（可能导致数据丢失）
+	//                     reader.pos = end;
+	//                     break;
+	                    
+	//                     // 或者选择抛出更明确的错误
+	//                     // throw new Error(`字段11嵌套消息越界: 嵌套结束=${nestedEnd}, 总结束=${end}`);
+	//                 }
+	                
+	//                 message.connected = $root.WifiConnectedState.decode(reader, nestedLength);
+	//                 break;
+	//             }
+	//             default: {
+	//                 const wireType = tag & 7;
+	//                 console.log(`跳过未知字段 ${tag >>> 3}, wireType=${wireType}`);
+	//                 reader.skipType(wireType);
+	//                 break;
+	//             }
+	//         }
+	//     }
+	    
+	//     console.log(`解码完成: 结束位置=${reader.pos}, 预期=${end}`);
+	//     return message;
+	// };
 
     /**
      * Decodes a RespGetStatus message from the specified reader or buffer, length delimited.
@@ -2278,42 +2360,149 @@ $root.WifiConnectedState = (function() {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    WifiConnectedState.decode = function decode(reader, length, error) {
-        if (!(reader instanceof $Reader))
-            reader = $Reader.create(reader);
-        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.WifiConnectedState();
-        while (reader.pos < end) {
-            var tag = reader.uint32();
-            if (tag === error)
-                break;
-            switch (tag >>> 3) {
-            case 1: {
-                    message.ip4Addr = reader.string();
-                    break;
-                }
-            case 2: {
-                    message.authMode = reader.int32();
-                    break;
-                }
-            case 3: {
-                    message.ssid = reader.bytes();
-                    break;
-                }
-            case 4: {
-                    message.bssid = reader.bytes();
-                    break;
-                }
-            case 5: {
-                    message.channel = reader.int32();
-                    break;
-                }
-            default:
-                reader.skipType(tag & 7);
-                break;
-            }
-        }
-        return message;
-    };
+    // WifiConnectedState.decode = function decode(reader, length, error) {
+    //     if (!(reader instanceof $Reader))
+    //         reader = $Reader.create(reader);
+    //     var end = length === undefined ? reader.len : reader.pos + length, message = new $root.WifiConnectedState();
+    //     while (reader.pos < end) {
+    //         var tag = reader.uint32();
+    //         if (tag === error)
+    //             break;
+    //         switch (tag >>> 3) {
+    //         case 1: {
+    //                 message.ip4Addr = reader.string();
+    //                 break;
+    //             }
+    //         case 2: {
+    //                 message.authMode = reader.int32();
+    //                 break;
+    //             }
+    //         case 3: {
+    //                 message.ssid = reader.bytes();
+    //                 break;
+    //             }
+    //         case 4: {
+    //                 message.bssid = reader.bytes();
+    //                 break;
+    //             }
+    //         case 5: {
+    //                 message.channel = reader.int32();
+    //                 break;
+    //             }
+    //         default:
+    //             reader.skipType(tag & 7);
+    //             break;
+    //         }
+    //     }
+    //     return message;
+    // };
+	WifiConnectedState.decode = function decode(reader, length, error) {
+	    if (!(reader instanceof $Reader))
+	        reader = $Reader.create(reader);
+	    
+	    var end = length === undefined ? reader.len : reader.pos + length, 
+	        message = new $root.WifiConnectedState();
+	    
+	    console.log(`开始解码 WifiConnectedState: 总长度=${reader.len}, 解析长度=${end - reader.pos}`);
+	    
+	    while (reader.pos < end) {
+	        const currentPos = reader.pos;
+	        var tag = reader.uint32();
+	        
+	        console.log(`连接阶段读取标签 @${currentPos}: tag=${tag}, field=${tag >>> 3}, wireType=${tag & 7}`);
+	        
+	        if (tag === error)
+	            break;
+	            
+	        switch (tag >>> 3) {
+	            case 1: {
+	                // 安全读取字符串
+	                if (reader.pos + 4 > end) {
+	                    console.error(`字段1(ip4Addr)长度读取失败: 位置=${reader.pos}, 剩余=${end - reader.pos}`);
+	                    break;
+	                }
+	                
+	                
+	                const strLength = reader.string();
+	                console.log('长度',strLength)
+					message.ip4Addr = strLength;
+					
+	            }
+	            
+	            case 2: { // authMode (int32)
+	                if (reader.pos + 4 > end) {
+	                    console.error(`字段2(authMode)读取失败: 位置=${reader.pos}, 剩余=${end - reader.pos}`);
+	                    break;
+	                }
+	                message.authMode = reader.int32();
+	                break;
+	            }
+	            
+	            case 3: { // ssid (bytes)
+	                // 安全读取字节数组
+	                if (reader.pos + 4 > end) {
+	                    console.error(`字段3(ssid)长度读取失败: 位置=${reader.pos}, 剩余=${end - reader.pos}`);
+	                    break;
+	                }
+	                
+	                const bytesLength = reader.uint32();
+	                if (reader.pos + bytesLength > end) {
+	                    console.error(`字段3(ssid)内容读取失败: 需要=${bytesLength}字节, 剩余=${end - reader.pos}`);
+	                    reader.pos += 4; // 回退长度前缀的读取
+	                    break;
+	                }
+	                
+	                message.ssid = reader.bytes();
+	                break;
+	            }
+	            
+	            case 4: { // bssid (bytes)
+	                // 类似字段3的处理
+	                if (reader.pos + 4 > end) {
+	                    console.error(`字段4(bssid)长度读取失败: 位置=${reader.pos}, 剩余=${end - reader.pos}`);
+	                    break;
+	                }
+	                
+	                const bytesLength = reader.uint32();
+	                if (reader.pos + bytesLength > end) {
+	                    console.error(`字段4(bssid)内容读取失败: 需要=${bytesLength}字节, 剩余=${end - reader.pos}`);
+	                    reader.pos += 4; // 回退长度前缀的读取
+	                    break;
+	                }
+	                
+	                message.bssid = reader.bytes();
+	                break;
+	            }
+	            
+	            case 5: { // channel (int32)
+	                if (reader.pos + 4 > end) {
+	                    console.error(`字段5(channel)读取失败: 位置=${reader.pos}, 剩余=${end - reader.pos}`);
+	                    break;
+	                }
+	                message.channel = reader.int32();
+	                break;
+	            }
+	            
+	            default: {
+	                const wireType = tag & 7;
+	                console.log(`跳过未知字段 ${tag >>> 3}, wireType=${wireType}`);
+	                
+	                // 安全跳过未知类型
+	                try {
+	                    reader.skipType(wireType);
+	                } catch (skipError) {
+	                    console.error(`跳过字段失败: ${skipError.message}`);
+	                    // 防止无限循环，手动移动到下一个可能的位置
+	                    reader.pos = Math.min(reader.pos + 1, end);
+	                }
+	                break;
+	            }
+	        }
+	    }
+	    
+	    console.log(`解码完成: 结束位置=${reader.pos}, 预期=${end}`);
+	    return message;
+	};
 
     /**
      * Decodes a WifiConnectedState message from the specified reader or buffer, length delimited.

@@ -183,16 +183,20 @@ const startNotice = (deviceId, serviceId, characteristicId, onCallBack) => {
 			state: true,
 			success(res) {
 				console.log("启用监听");
-				let timer = setTimeout(()=>{
-					console.log('蓝牙建立连接，启用通知')
+				uni.onBLECharacteristicValueChange(result => {
+					console.log("特征值变化了",result);
+					onCallBack(result);
+				})
+				// let timer = setTimeout(()=>{
+				// 	console.log('蓝牙建立连接，启用通知')
 					
-					// 监听低功耗蓝牙设备的特征值变化
-					uni.onBLECharacteristicValueChange(result => {
-						console.log("特征值变化了",result);
-						onCallBack(result);
-					})
-					clearTimeout(timer)
-				},600)
+				// 	// 监听低功耗蓝牙设备的特征值变化
+				// 	uni.onBLECharacteristicValueChange(result => {
+				// 		console.log("特征值变化了",result);
+				// 		onCallBack(result);
+				// 	})
+				// 	clearTimeout(timer)
+				// },600)
 				
 			}
 		});
@@ -212,7 +216,7 @@ const writeData = (deviceId, serviceId, characteristicId, buffer) => {
 			},
 			fail(err) {
 				console.log("报错了", err);
-				reject();
+				reject(err);
 			}
 		});
 	});

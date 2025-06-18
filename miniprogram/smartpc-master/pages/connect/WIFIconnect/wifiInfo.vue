@@ -3,18 +3,24 @@
 		<view class="common-box" v-if="!isConnect">
 			<view class="header">
 				<text>连接到 Wi-Fi</text>
+				<view @click="scanWifi()">
+					<uni-icons type="reload" size="40"></uni-icons>
+				</view>
 			</view>
 			<view class="form-container">
 				<!-- Wi-Fi 名称输入框 -->
 				<view class="form-item">
 					<view>Wi-Fi 名称：</view>
 					<view class="input-box">
-						<input type="text" :placeholder="selectedWifi.SSID || '请输入WiFi'" >
+						<input type="text" :placeholder="selectedWifi.SSID || '请选择WiFi'" >
 						<picker mode="selector" :range="wifiList" range-key="SSID" @change="onWifiSelect">
 							<!-- <view class="wifi-picker">
 								{{ selectedWifi.SSID || '选择WiFi' }}
 							</view> -->
-							<uni-icons type="down" size="24" color="#999"></uni-icons>
+							<view>
+								<uni-icons type="down" size="24" color="#999"></uni-icons>
+							</view>
+							
 
 							
 						</picker>
@@ -27,13 +33,14 @@
 					<view>Wi-Fi 密码：</view>
 					<view class="input-box">
 						<input :password="isPassword" v-model="wifiPassword" placeholder="请输入 Wi-Fi 密码"  />
-						<uni-icons
-						      class="eye"
-						      :type="isPassword ? 'eye-slash' : 'eye'"
-						      size="24"
-						      color="#999"
-						      @click="togglePasswordVisibility"
-						    />
+						<view>
+							<uni-icons
+							      class="eye"
+							      :type="isPassword ? 'eye-slash' : 'eye'"
+							      size="24"
+							      color="#999"
+							      @click="togglePasswordVisibility"/></uni-icons>
+						</view>
 					</view>
 					
 				</view>
@@ -66,12 +73,9 @@
 </template>
 
 <script>
-	// const $root = require('../../../common/sec0.js');
-	
 	import * as sec0 from '../../../common/sec0.js';
 	import * as wificonfig from '../../../common/wifi_config.js';
-	// import * as wifiscan from '../../../common/wifi_scan.js';
-	
+	const protobuf = require("protobufjs/minimal");
 	export default {
 		data() {
 			return {
@@ -104,6 +108,10 @@
 			},
 			// 扫描附近的 Wi-Fi
 			scanWifi() {
+				uni.showLoading({
+					title: 'Wifi扫描中',
+					mask: true
+				})
 				uni.startWifi({
 					success: () => {
 						uni.getWifiList({
@@ -112,8 +120,10 @@
 									this.wifiList = wifiList.wifiList || [];
 									console.log("扫描到的 Wi-Fi 列表：", this.wifiList);
 								});
+								uni.hideLoading();
 							},
 							fail: (err) => {
+								uni.hideLoading();
 								console.error("获取 Wi-Fi 列表失败", err);
 								uni.showToast({
 									title: "获取 Wi-Fi 列表失败",
@@ -123,6 +133,7 @@
 						});
 					},
 					fail: (err) => {
+						uni.hideLoading();
 						console.error("启动 Wi-Fi 搜索失败", err);
 						uni.showToast({
 							title: "启动 Wi-Fi 搜索失败",
@@ -167,20 +178,20 @@
 					 然后跳转到联网成功页面*/
 				
 				// 1、从 proto-ver 端点获取设备版本信息
-				uni.request({
-					url: 'http://192.168.4.1/proto-ver',
-					method: 'POST',
-					header: {
-						'Content-Type': 'application/x-www-form-urlencoded' //请求头
-					},
-					data: '{}', // 发送空字符串，确保 Content-Length: 0
-					success: (res) => {
-						console.log('请求成功：', res.data);
-					},
-					fail: (err)=> {
-						console.error('请求失败：', err);
-					}
-				});
+				// uni.request({
+				// 	url: 'http://192.168.4.1/proto-ver',
+				// 	method: 'POST',
+				// 	header: {
+				// 		'Content-Type': 'application/x-www-form-urlencoded' //请求头
+				// 	},
+				// 	data: '{}', // 发送空字符串，确保 Content-Length: 0
+				// 	success: (res) => {
+				// 		console.log('请求成功：', res.data);
+				// 	},
+				// 	fail: (err)=> {
+				// 		console.error('请求失败：', err);
+				// 	}
+				// });
 		
 				
 				// 1、创建会话
@@ -235,7 +246,7 @@
 							},
 							data: newwifibuffer, // 发送编码后的 Protobuf 消息
 							success: (res) => {
-								console.log('WiFi 配置成功', res);
+								console.log('WiFi信息配置成功', res);
 								uni.showToast({
 									title: 'WiFi信息配置成功',
 									icon: 'none',
@@ -258,36 +269,142 @@
 									success: (res) => {
 										console.log('ApplyConfig 成功', res);
 										uni.showToast({
-											title: '配网成功',
+											title: '尝试连接Wifi',
 											icon: 'none',
 										});
 										
+										// 转圈
+										uni.showLoading({
+											title:'配网中',
+											mask: true
+										});
 										// 4、获取wifi连接状态
 										// 1. 创建 GetStatus 消息对象
-										// const getStatusMessage = wificonfig.WiFiConfigPayload.create({
-										//     msg: wificonfig.WiFiConfigMsgType.TypeCmdGetStatus // 获取状态的枚举值
-										// });
+										const getStatusMessage = wificonfig.WiFiConfigPayload.create({
+										    msg: wificonfig.WiFiConfigMsgType.TypeCmdGetStatus // 获取状态的枚举值
+										});
 										
-										// // 2. 序列化为 Uint8Array
-										// const getStatusBuffer = wificonfig.WiFiConfigPayload.encode(getStatusMessage).finish();
-										// const getStatusArrayBuffer = Uint8Array.from(getStatusBuffer).buffer;
+										// 2. 序列化为 Uint8Array
+										const getStatusBuffer = wificonfig.WiFiConfigPayload.encode(getStatusMessage).finish();
+										const getStatusArrayBuffer = Uint8Array.from(getStatusBuffer).buffer;
 										
-										// // 3. 使用 uni.request 发送 buffer
-										// uni.request({
-										//     url: 'http://192.168.4.1/prov-config', // 替换为设备的实际IP地址和端点
-										//     method: 'POST',
-										//     header: {
-										//         'content-type': 'application/octet-stream' // Protobuf 消息的 MIME 类型
-										//     },
-										//     data: getStatusArrayBuffer, // 发送编码后的 Protobuf 消息
-										//     success: (res) => {
-										//         console.log('GetStatus 请求成功', res);
-										//         // 4. 解析响应数据
-										//         const responseBuffer = new Uint8Array(res.data);
-										//         const responseMessage = wificonfig.WiFiConfigPayload.decode(responseBuffer);
-										// 		console.log('返回结果解析',responseMessage)
+										// 3. 使用 uni.request 发送 buffer
+										// 4. 设置定时器，每隔 3 秒发送一次请求
 										
-										//         // 提取状态信息
+										const intervalId = setInterval(() =>{
+											
+											uni.request({
+												url: 'http://192.168.4.1/prov-config', // 替换为设备的实际IP地址和端点
+												method: 'POST',
+												header: {
+													'content-type': 'application/octet-stream' // Protobuf 消息的 MIME 类型
+												},
+												data: getStatusArrayBuffer, // 发送编码后的 Protobuf 消息
+												success: (res) => {
+													console.log("Response data:", res);
+													console.log("Response data length:", res.data.length);
+													// 检查返回的数据类型
+													if (typeof res.data === 'string') {
+														try {
+															// 将字符串转换为二进制数据
+															const binaryData = new Uint8Array(res.data.length);
+															for (let i = 0; i < res.data.length; i++) {
+																binaryData[i] = res.data.charCodeAt(i);
+															}
+
+															console.log(binaryData)
+															// 创建 Reader 并解析返回的数据
+															const reader = protobuf.Reader.create(binaryData);
+															console.log('reader',reader)
+															const payload = wificonfig.WiFiConfigPayload.decode(reader);
+															
+															// 检查 payload 是否为空
+															if (!payload || Object.keys(payload).length === 0) {
+																console.error("Parsed payload is empty:", payload);
+																return;
+															}
+											
+															// 检查 payload 中的消息类型
+															if (payload.msg === wificonfig.WiFiConfigMsgType.TypeRespGetStatus) {
+																// 解析 RespGetStatus 消息
+																const getStatusResponse = payload.respGetStatus.staState;
+																console.log("连接状态：",getStatusResponse)
+																// 打印状态信息
+																// console.log("Status:", getStatusResponse.status);
+																// console.log("Station State:", getStatusResponse.staState);
+																// console.log("connected:", getStatusResponse.connected);
+																// console.log("failreason:", getStatusResponse.failReason);
+																
+																if(getStatusResponse === 3){
+																	uni.hideLoading();
+																	console.log("wifi连接失败，请检查密码")
+																	clearInterval(intervalId); 
+																	uni.showModal({
+																		content: 'wifi连接失败，请重置硬件重新配网，输入正确的wifi密码',
+																		showCancel: false,
+																		success: function (res) {
+																			if (res.confirm) {
+																				uni.reLaunch({
+																					url:'/pages/index/index'
+																				})
+																			} 
+																		}
+																	});
+																}else if(getStatusResponse === 0){
+																	uni.hideLoading();
+																	console.log("wifi连接成功")
+																	clearInterval(intervalId); 
+																	this.isConnect = true;
+																	uni.showModal({				
+																		content: '配网成功',
+																		showCancel: false,
+																		success: function (res) {
+																			if (res.confirm) {
+																				console.log('前',this.isConnect)
+																				this.isConnect = true;
+																				console.log('后',this.isConnect)
+																			} 
+																		}
+																	});
+																}
+																
+															} else {
+																console.error("Unexpected message type:", payload.msg);
+															}
+														} catch (error) {
+															console.error("Error decoding or parsing message:", error);
+														}
+													} else {
+														console.error("Invalid response data type:", typeof res.data);
+													}
+												},
+												fail: (err) => {
+													console.error('GetStatus 请求失败', err);
+													uni.showToast({
+														title: '获取 WiFi 状态失败',
+														icon: 'none',
+													});
+												}
+											});
+											
+										}, 6000);
+										
+										  
+										  //       // 4. 解析响应数据
+										  //       const responseBuffer = new Uint8Array(res.data);
+										  //       const responseMessage = wificonfig.WiFiConfigPayload.decode(responseBuffer);
+												// console.log('返回结果解析',responseMessage)
+												//  // 如果需要，可以尝试解析 HTML 内容以提取有用信息
+												// try {
+												// 	const parser = new DOMParser();
+												// 	const doc = parser.parseFromString(res.data, 'text/html');
+												// 	const errorMessage = doc.querySelector('body').textContent;
+												// 	console.error('提取的错误信息:', errorMessage);
+												// } catch (e) {
+												// 	console.error('解析 HTML 失败:', e);
+												// }
+										
+										        // 提取状态信息
 										//         if (responseMessage.respGetStatus) {
 										//             const status = responseMessage.respGetStatus.status;
 										//             const staState = responseMessage.respGetStatus.staState;
@@ -325,17 +442,9 @@
 										//                 icon: 'none',
 										//             });
 										//         }
-										//     },
-										//     fail: (err) => {
-										//         console.error('GetStatus 请求失败', err);
-										//         uni.showToast({
-										//             title: '获取 WiFi 状态失败',
-										//             icon: 'none',
-										//         });
-										//     }
-										// });
+										    
 										
-										this.isConnect = true;
+										// this.isConnect = true;
 									},
 									fail: (err) => {
 										console.error('ApplyConfig 失败', err);
@@ -382,6 +491,7 @@
 						
 				
 			},
+			
 			async createSession() {
 			    try {
 			        // 创建消息对象
@@ -514,9 +624,14 @@
 <style lang="scss" scoped>
 .Layout{
 	.header {
+		display: flex;
+		justify-content: space-between;
 		font-size: 18px;
 		font-weight: bold;
-		margin-bottom: 20px;
+		margin-bottom: 10px;
+		view{
+			font-weight: 400;
+		}
 	}
 	.form-container{
 		.form-item {
@@ -531,7 +646,10 @@
 				flex: 1;
 				border: 1px solid #ccc;
 				padding: 10px;
-				border-radius: 5px;		
+				border-radius: 5px;	
+				input{
+					width: 390rpx;
+				}
 			}
 		}
 		

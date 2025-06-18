@@ -74,8 +74,8 @@
 					<t-color-picker ref="colorPicker" :color="color" @confirm="confirm"></t-color-picker>
 					
 					<view class="sliderBox">
-						<view class="uslider">
-							<u-slider v-model="lightIntensity" @end="lightBrightnessChange(lightIntensity)" :disabled="!lightPower" active-color="#2A82E4" step="50" min="0" max="100" block-width="40" block-color="white" height="40"></u-slider>
+						<view class="uslider" @click="lightBrightnessChange(lightIntensity)">
+							<u-slider v-model="lightIntensity" @end="lightBrightnessChange(lightIntensity)" active-color="#2A82E4" step="50" min="0" max="100" block-width="60" block-color="white" height="40"></u-slider>
 						</view>
 						<view class="text">
 							<text>20%</text>
@@ -115,19 +115,31 @@
 		onLoad(option){
 			// 读取蓝牙设备
 			this.bleDevices = this.vuex_bleDev;	
+			bluetooth.startNotice(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleCharacteristicId, this.onBLECharacteristicValueChange);
+			
+			// // 获取设备最新状态
+			// bluetooth.writeData(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleWriteCharacteristicId, "a5 fa 00 03 ff ff a0 fb");
+			
 		},
 		onShow(){
 			// 每次回到这个页面都要获取一下设备，防止有些掉线了
 			this.bleDevices = this.vuex_bleDev;
 			console.log("控制页bledev",this.bleDevices)
-			bluetooth.startNotice(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleCharacteristicId, this.onBLECharacteristicValueChange);
+			// bluetooth.startNotice(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleCharacteristicId, this.onBLECharacteristicValueChange);
+			// 获取设备最新状态
+			bluetooth.writeData(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleWriteCharacteristicId, "a5 fa 00 03 ff ff a0 fb");
+			
 		},
 		methods:{
 			openPopup(){
 				// 通过组件定义的ref调用uni-popup方法 ,如果传入参数 ，type 属性将失效 ，仅支持 ['top','left','bottom','right','center']
 				if(this.pcStatus === '0') this.$refs.popup.open()
 			},
+			// 断开蓝牙
 			disConnect(){
+				bluetooth.disconnectBluetooth(this.bleDevices.bleDeviceid).then(()=>{
+					bluetooth.startDiscoveryBluetooth();
+				})
 				uni.reLaunch({
 					url:'/pages/index/index'
 				})
@@ -179,6 +191,15 @@
 			},
 			// 灯光开光
 			pcLightStatusChange(){
+				let dataToSend = "";
+				if(this.lightPower === true){
+					this.lightPower = false;
+					dataToSend = "a5 fa 00 03 03 00 a5 fb"; // 关闭灯光
+				}else{
+					this.lightPower = true;
+					dataToSend = "a5 fa 00 03 02 00 a4 fb"; // 打开灯光
+				}
+				bluetooth.writeData(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleWriteCharacteristicId, dataToSend);
 				
 			},
 			// 灯光亮度
@@ -258,6 +279,11 @@
 						this.windSpeed = 50;
 					}else if(fanSpeed === '11'){
 						this.windSpeed = 100;
+					}
+					if(lightColor === '000000'){
+						this.lightPower = false;
+					}else{
+						this.lightPower = true;
 					}
 					
 					// parseReceivedData(page, receivedData);
@@ -405,6 +431,7 @@
 			.sliderBox{
 				.uslider{
 					margin: 20rpx 0;
+					padding: 0 30rpx;
 				}
 				.text{
 					display: flex;

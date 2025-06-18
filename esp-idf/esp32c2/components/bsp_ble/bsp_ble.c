@@ -1,5 +1,7 @@
 #include "bsp_ble.h"
 static const char *TAG = "BLE";
+bool ble_connected = false;
+bool ble_first_commit = true;
 // 0xA5 0xFA 0x00 0x81 0xC5 0x07 0xEC 0xFB
 enum
 {
@@ -276,6 +278,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
         ESP_LOGI(TAG, "SERVICE_START_EVT, status %d, service_handle %d", param->start.status, param->start.service_handle);
         break;
     case ESP_GATTS_CONNECT_EVT: // 收到连接事件
+        ble_connected = true;   // 标志位设置
         ESP_LOGI(TAG, "ESP_GATTS_CONNECT_EVT, conn_id = %d", param->connect.conn_id);
         esp_log_buffer_hex(TAG, param->connect.remote_bda, 6);
         esp_ble_conn_update_params_t conn_params = {0};
@@ -289,9 +292,9 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
         esp_ble_gap_update_conn_params(&conn_params);
         gl_conn_id = param->connect.conn_id;
 
-        send_status_packet(0xFFFF); // 获取一次最新状态，此时出现差量，就会进行一次上传
         break;
     case ESP_GATTS_DISCONNECT_EVT: // 收到断开连接事件
+        ble_connected = false;     // 标志位复位
         ESP_LOGI(TAG, "ESP_GATTS_DISCONNECT_EVT, reason = 0x%x", param->disconnect.reason);
         esp_ble_gap_start_advertising(&adv_params);
         gl_conn_id = 0xFFFF;
@@ -373,6 +376,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         }
         break;
     case ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT: // 更新连接参数成功事件
+       // ble_connected = true;
         // ble_set_ch2_value(buffer, FRAME_LEN); // 特征值2用于发送给小程序端
         ESP_LOGI(TAG, "update connection params status = %d, min_int = %d, max_int = %d,conn_int = %d,latency = %d, timeout = %d",
                  param->update_conn_params.status,
@@ -381,6 +385,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
                  param->update_conn_params.conn_int,
                  param->update_conn_params.latency,
                  param->update_conn_params.timeout);
+
         break;
     default:
         break;

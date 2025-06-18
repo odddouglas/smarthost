@@ -44,8 +44,10 @@ void uart_receive_task(void *arg)
                 {
                     uint16_t data = buffer[4] | (buffer[5] << 8);
                     parse_data_buffer(data);
-
-                    ble_set_ch2_value(buffer, FRAME_LEN); // 特征值2用于发送给小程序端，格式类似 a5 fa 00 81 c5 07 ec fb
+                    if (ble_connected)
+                    {
+                        ble_set_ch2_value(buffer, FRAME_LEN); // 特征值2用于发送给小程序端，格式类似 a5 fa 00 81 c5 07 ec fb
+                    }
 
                     if (isFanDataChanged())
                     {
@@ -87,17 +89,22 @@ void uart_receive_task(void *arg)
     }
 }
 
-// 每隔120s上报一次(可设置)
+// 周期上报一次(可设置)
 void hw_timer_report_task(void *param)
 {
     while (1)
     {
+        if (ble_connected && ble_first_commit) // 在蓝牙第一次连接时，进行属性上报。
+        {
+            send_status_packet(0xFFFF);
+            ble_first_commit = false;
+        }
         if (report_flag)
         {
 
             log_memory_usage("MAIN_FLASH"); // 打印内存使用情况
             report_flag = false;
-            send_status_packet(0xFFFF); // 获取最新设备状态，此时可以如果差量变化，则更新ble和mqtt状态
+            send_status_packet(0xFFFF); // 获取一次最新状态，此时出现差量MQTT上传和无条件BLE上传
             // mqtt_report_BaseData(); // 上报温湿度等基础数据
             // vTaskDelay(pdMS_TO_TICKS(1000));
 
@@ -131,9 +138,9 @@ void app_main(void)
     xSemaphoreTake(s_mqtt_connect_sem, portMAX_DELAY); // 等待 MQTT 成功连接
 
     uart_init(); // 先初始化串口，蓝牙看后续连接需求
+    hw_timer_init();
     ble_start();
     // uart_init();
-    hw_timer_init();
 
     BaseType_t ret1 = xTaskCreate(uart_receive_task, "uart_receive_task", 2048, NULL, 10, NULL);
     ESP_LOGI(TAG, "Create uart_receive_task: %s", ret1 == pdPASS ? "SUCCESS" : "FAILED");

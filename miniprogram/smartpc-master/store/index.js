@@ -95,7 +95,7 @@ const store = new Vuex.Store({
 		},
 		// 新增一个mutation，用于清空vuex_bleDev
 		clearVuexBleDev(state) {
-			state.vuex_bleDev = {name:"ceshi",bleStatus:1}; // 设置为默认值
+			state.vuex_bleDev = {}; // 设置为默认值
 			// 同时更新本地存储
 			saveLifeData('vuex_bleDev', state.vuex_bleDev);
 		}

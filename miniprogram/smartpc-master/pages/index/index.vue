@@ -81,13 +81,41 @@
 			this.userCode = this.vuex_user.loginCode;
 			this.bleDevices = this.vuex_bleDev;	
 			// this.fetchUserDevices();
+			bluetooth.startNotice(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleCharacteristicId, this.onBLECharacteristicValueChange);
+			// // 获取设备最新状态
+			// bluetooth.writeData(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleWriteCharacteristicId, "a5 fa 00 03 ff ff a0 fb");
+			
 		},
 		onShow(){
 			// 每次回到这个页面都要获取一下设备，防止有些掉线了
 			// this.fetchUserDevices();
 			this.bleDevices = this.vuex_bleDev;
 			console.log("bledev",this.bleDevices)
-			bluetooth.startNotice(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleCharacteristicId, this.onBLECharacteristicValueChange);
+			// bluetooth.startNotice(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleCharacteristicId, this.onBLECharacteristicValueChange);
+			// 获取设备最新状态
+			
+			bluetooth.writeData(this.bleDevices.bleDeviceid, this.bleDevices.bleServices, this.bleDevices.bleWriteCharacteristicId, "a5 fa 00 03 ff ff a0 fb").catch((err) => {
+				
+				// 根据错误信息进行处理
+				if (err.errCode === 10006) {
+					console.error('连接已断开，请检查设备连接状态');
+					this.$u.vuex('vuex_bleDev', {
+						name:this.bleDevices.name,
+						bleStatus:0,
+						bleDeviceid:this.bleDevices.bleDeviceid,
+						bleRssi:this.bleDevices.bleRssi,
+						bleServices:this.bleDevices.bleServices,
+						bleCharacteristicId: this.bleDevices.bleCharacteristicId,
+						bleWriteCharacteristicId: this.bleDevices.bleWriteCharacteristicId,
+					});
+					this.bleDevices = this.vuex_bleDev;
+				}else if(err.errCode === 1000){
+					console.error('还没初始化');
+				} else {
+					console.error('其他错误', err);
+				}
+			});
+			
 		},
 		methods:{
 			// 获取用户设备

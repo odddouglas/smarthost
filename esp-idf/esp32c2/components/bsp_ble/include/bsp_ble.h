@@ -15,6 +15,9 @@
 #define SVC_IND_ID1 0
 #define SVC_IND_ID2 1
 
+extern bool ble_connected; // from bsp_ble.c
+extern bool ble_first_commit;
+
 void ble_start(void);
 void ble_set_ch1_value(uint8_t *data, size_t length);
 void ble_set_ch2_value(uint8_t *data, size_t length);
